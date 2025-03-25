@@ -79,19 +79,19 @@
      - **Como**: Configurar autenticação Supabase (SignUp, SignIn, recuperação de senha) ✓
      - **Como**: Implementar login social (Google e Apple) ✓
      - **Como**: Garantir persistência de sessão ✓
-   - [ ] **Migrar Home** (Alta Prioridade - Próximo passo)
-     - **Como**: Criar HomeViewModel e models necessários
-     - **Como**: Separar widgets em componentes reutilizáveis
-     - **Como**: Implementar carregamento eficiente de conteúdo
+   - [x] **Migrar Home** (Completo)
+     - **Como**: Criar HomeViewModel e models necessários ✓
+     - **Como**: Separar widgets em componentes reutilizáveis ✓
+     - **Como**: Implementar carregamento eficiente de conteúdo ✓
    - [x] **Migrar Workout** (Completo)
      - **Como**: Implementar models (Workout, Exercise, WorkoutSection) ✓
      - **Como**: Criar repository com operações CRUD ✓ 
      - **Como**: Desenvolver ViewModel com gerenciamento de estado ✓
      - **Como**: Implementar telas de listagem, detalhes e edição ✓
-   - [ ] **Migrar restante das features** (Média Prioridade)
+   - [ ] **Migrar restante das features** (Média Prioridade - Próximo passo)
      - Challenges → Benefits → Profile (ordem sugerida)
 
-3. **Refatorar Navegação** (Após migração de Home)
+3. **Refatorar Navegação** (Alta Prioridade)
    - [ ] **Padronizar uso de auto_route**
      - **Como**: Definir rotas com objetos tipados
      - **Como**: Implementar guardas de rota para usuários não autenticados
@@ -186,14 +186,14 @@
 
 ## PRÓXIMOS PASSOS PRIORITÁRIOS
 
-1. **Migrar feature Home** - Próxima feature a ser migrada, seguindo o padrão estabelecido pelas features Auth e Workout
-2. **Implementar testes para ViewModels existentes** - Começar com AuthViewModel e WorkoutViewModel
+1. **Migrar features restantes** - Começar com Challenges, seguido por Benefits e Profile
+2. **Implementar testes para ViewModels existentes** - Começar com AuthViewModel, HomeViewModel e WorkoutViewModel
 3. **Otimizar renderização de listas** - Melhorar a performance da UI em conjuntos de dados maiores
 
 ## PROGRESSO ATUAL
 
 - **Infraestrutura Básica**: ~95% concluído
-- **Migração para Arquitetura por Feature**: ~50% concluído (2/4 features principais)
+- **Migração para Arquitetura por Feature**: ~75% concluído (3/4 features principais)
 - **Testes e Garantia de Qualidade**: ~15% concluído
 - **Experiência do Usuário e Resiliência**: ~5% concluído
 - **Preparação para Lançamento**: ~10% concluído
