@@ -885,6 +885,7 @@ Para facilitar o acompanhamento de mudanças na documentação, mantenha esta se
 
 | Data | Desenvolvedor | Descrição da Alteração |
 |------|---------------|------------------------|
+| 25/03/2025 | cunhamarcela | Migração da feature Workout para o padrão MVVM com Riverpod, incluindo modelos, repositórios, viewmodels e telas |
 | 25/03/2025 | cunhamarcela | Implementação das telas de autenticação com design minimalista |
 | 10/08/2023 | Equipe Inicial | Criação do documento |
 | 15/08/2023 | Marcel Acunha | Implementação do sistema de tratamento de erros e atualizações na documentação |
