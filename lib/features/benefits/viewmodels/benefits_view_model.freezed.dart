@@ -45,8 +45,6 @@ abstract class $BenefitsStateCopyWith<$Res> {
       String? errorMessage,
       Benefit? selectedBenefit,
       List<String> partners});
-
-  $BenefitCopyWith<$Res>? get selectedBenefit;
 }
 
 /// @nodoc
@@ -103,20 +101,6 @@ class _$BenefitsStateCopyWithImpl<$Res, $Val extends BenefitsState>
               as List<String>,
     ) as $Val);
   }
-
-  /// Create a copy of BenefitsState
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $BenefitCopyWith<$Res>? get selectedBenefit {
-    if (_value.selectedBenefit == null) {
-      return null;
-    }
-
-    return $BenefitCopyWith<$Res>(_value.selectedBenefit!, (value) {
-      return _then(_value.copyWith(selectedBenefit: value) as $Val);
-    });
-  }
 }
 
 /// @nodoc
@@ -135,9 +119,6 @@ abstract class _$$BenefitsStateImplCopyWith<$Res>
       String? errorMessage,
       Benefit? selectedBenefit,
       List<String> partners});
-
-  @override
-  $BenefitCopyWith<$Res>? get selectedBenefit;
 }
 
 /// @nodoc
@@ -266,8 +247,8 @@ class _$BenefitsStateImpl implements _BenefitsState {
                 other.isLoading == isLoading) &&
             (identical(other.errorMessage, errorMessage) ||
                 other.errorMessage == errorMessage) &&
-            (identical(other.selectedBenefit, selectedBenefit) ||
-                other.selectedBenefit == selectedBenefit) &&
+            const DeepCollectionEquality()
+                .equals(other.selectedBenefit, selectedBenefit) &&
             const DeepCollectionEquality().equals(other._partners, _partners));
   }
 
@@ -279,7 +260,7 @@ class _$BenefitsStateImpl implements _BenefitsState {
       activeTab,
       isLoading,
       errorMessage,
-      selectedBenefit,
+      const DeepCollectionEquality().hash(selectedBenefit),
       const DeepCollectionEquality().hash(_partners));
 
   /// Create a copy of BenefitsState

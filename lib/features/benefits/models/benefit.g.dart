@@ -11,18 +11,16 @@ _$BenefitImpl _$$BenefitImplFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       title: json['title'] as String,
       description: json['description'] as String,
-      imageUrl: json['imageUrl'] as String,
-      pointsRequired: (json['pointsRequired'] as num).toInt(),
-      expirationDate: json['expirationDate'] == null
+      imageUrl: json['imageUrl'] as String?,
+      qrCodeUrl: json['qrCodeUrl'] as String?,
+      expiresAt: json['expiresAt'] == null
           ? null
-          : DateTime.parse(json['expirationDate'] as String),
-      promoCode: json['promoCode'] as String?,
-      partner: json['partner'] as String?,
-      category: json['category'] as String? ?? "Outros",
-      termsAndConditions: json['termsAndConditions'] as String?,
-      isFeatured: json['isFeatured'] as bool? ?? false,
-      availableQuantity: (json['availableQuantity'] as num?)?.toInt(),
-      externalUrl: json['externalUrl'] as String?,
+          : DateTime.parse(json['expiresAt'] as String),
+      partner: json['partner'] as String,
+      terms: json['terms'] as String?,
+      type: $enumDecodeNullable(_$BenefitTypeEnumMap, json['type']) ??
+          BenefitType.coupon,
+      actionUrl: json['actionUrl'] as String?,
     );
 
 Map<String, dynamic> _$$BenefitImplToJson(_$BenefitImpl instance) =>
@@ -31,13 +29,16 @@ Map<String, dynamic> _$$BenefitImplToJson(_$BenefitImpl instance) =>
       'title': instance.title,
       'description': instance.description,
       'imageUrl': instance.imageUrl,
-      'pointsRequired': instance.pointsRequired,
-      'expirationDate': instance.expirationDate?.toIso8601String(),
-      'promoCode': instance.promoCode,
+      'qrCodeUrl': instance.qrCodeUrl,
+      'expiresAt': instance.expiresAt?.toIso8601String(),
       'partner': instance.partner,
-      'category': instance.category,
-      'termsAndConditions': instance.termsAndConditions,
-      'isFeatured': instance.isFeatured,
-      'availableQuantity': instance.availableQuantity,
-      'externalUrl': instance.externalUrl,
+      'terms': instance.terms,
+      'type': _$BenefitTypeEnumMap[instance.type]!,
+      'actionUrl': instance.actionUrl,
     };
+
+const _$BenefitTypeEnumMap = {
+  BenefitType.coupon: 'coupon',
+  BenefitType.qrCode: 'qrCode',
+  BenefitType.link: 'link',
+};

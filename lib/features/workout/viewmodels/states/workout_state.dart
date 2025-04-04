@@ -37,6 +37,7 @@ class WorkoutState with _$WorkoutState {
   /// Verifica se está em estado de carregando
   bool get isLoading => maybeWhen(
         loading: () => true,
+        initial: () => true,
         orElse: () => false,
       );
 
@@ -54,44 +55,4 @@ class WorkoutState with _$WorkoutState {
         selectedWorkout: (workout, _, __, ___, ____) => workout,
         orElse: () => null,
       );
-
-  /// Função helper para copiar o estado atual com novos valores
-  WorkoutState copyWith({
-    List<Workout>? workouts,
-    List<Workout>? filteredWorkouts,
-    List<String>? categories,
-    WorkoutFilter? filter,
-    Workout? selectedWorkout,
-  }) {
-    return when(
-      initial: () => const WorkoutState.initial(),
-      loading: () => const WorkoutState.loading(),
-      loaded: (currentWorkouts, currentFiltered, currentCategories, currentFilter) =>
-          WorkoutState.loaded(
-            workouts: workouts ?? currentWorkouts,
-            filteredWorkouts: filteredWorkouts ?? currentFiltered,
-            categories: categories ?? currentCategories,
-            filter: filter ?? currentFilter,
-          ),
-      selectedWorkout: (currentSelected, currentWorkouts, currentFiltered, currentCategories, currentFilter) =>
-          WorkoutState.selectedWorkout(
-            workout: selectedWorkout ?? currentSelected,
-            workouts: workouts ?? currentWorkouts,
-            filteredWorkouts: filteredWorkouts ?? currentFiltered,
-            categories: categories ?? currentCategories,
-            filter: filter ?? currentFilter,
-          ),
-      error: (message) => WorkoutState.error(message),
-    );
-  }
-}
-
-/// Modelo para armazenar os filtros aplicados
-@freezed
-class WorkoutFilter with _$WorkoutFilter {
-  const factory WorkoutFilter({
-    @Default('') String category,
-    @Default(0) int maxDuration,
-    @Default('') String difficulty,
-  }) = _WorkoutFilter;
 } 

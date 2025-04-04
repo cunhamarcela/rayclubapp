@@ -3,7 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'benefit.freezed.dart';
 part 'benefit.g.dart';
 
-/// Representa um benefício disponível para os usuários do app.
+/// Model representing a benefit or coupon
 @freezed
 class Benefit with _$Benefit {
   const factory Benefit({
@@ -17,34 +17,25 @@ class Benefit with _$Benefit {
     required String description,
     
     /// URL da imagem que representa o benefício
-    required String imageUrl,
+    String? imageUrl,
     
-    /// Quantidade de pontos necessários para resgatar o benefício
-    required int pointsRequired,
+    /// URL do QR Code do benefício (opcional)
+    String? qrCodeUrl,
     
     /// Data de expiração do benefício (opcional)
-    DateTime? expirationDate,
-    
-    /// Código promocional do benefício (opcional)
-    String? promoCode,
+    DateTime? expiresAt,
     
     /// Empresa ou marca parceira que fornece o benefício
-    String? partner,
-    
-    /// Categoria do benefício para agrupamento
-    @Default("Outros") String category,
+    required String partner,
     
     /// Termos e condições para uso do benefício
-    String? termsAndConditions,
+    String? terms,
     
-    /// Indica se o benefício foi destacado para promoção especial
-    @Default(false) bool isFeatured,
+    /// Tipo do benefício
+    @Default(BenefitType.coupon) BenefitType type,
     
-    /// Quantidade disponível (null para ilimitado)
-    int? availableQuantity,
-    
-    /// Link externo para redireção ao resgatar o benefício
-    String? externalUrl,
+    /// URL de ação associada ao benefício
+    String? actionUrl,
   }) = _Benefit;
 
   /// Cria um benefício a partir de JSON
@@ -55,7 +46,13 @@ class Benefit with _$Benefit {
     id: '',
     title: '',
     description: '',
-    imageUrl: '',
-    pointsRequired: 0,
+    partner: '',
   );
+}
+
+/// Types of benefits available
+enum BenefitType {
+  coupon,
+  qrCode,
+  link
 } 

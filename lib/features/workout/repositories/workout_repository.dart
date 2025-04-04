@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:ray_club_app/core/errors/app_exception.dart';
+import 'package:ray_club_app/core/errors/app_exception.dart' as app_errors;
 import 'package:ray_club_app/features/workout/models/workout_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -34,7 +34,7 @@ class MockWorkoutRepository implements WorkoutRepository {
     try {
       return _getMockWorkouts();
     } catch (e) {
-      throw StorageException(
+      throw app_errors.StorageException(
         message: 'Erro ao carregar treinos',
         originalError: e,
       );
@@ -52,7 +52,7 @@ class MockWorkoutRepository implements WorkoutRepository {
           .where((workout) => workout.type.toLowerCase() == category.toLowerCase())
           .toList();
     } catch (e) {
-      throw StorageException(
+      throw app_errors.StorageException(
         message: 'Erro ao carregar treinos por categoria',
         originalError: e,
       );
@@ -68,15 +68,15 @@ class MockWorkoutRepository implements WorkoutRepository {
       final allWorkouts = _getMockWorkouts();
       return allWorkouts.firstWhere(
         (workout) => workout.id == id,
-        orElse: () => throw NotFoundException(
+        orElse: () => throw app_errors.NotFoundException(
           message: 'Treino não encontrado',
           code: 'workout_not_found',
         ),
       );
     } catch (e) {
-      if (e is NotFoundException) rethrow;
+      if (e is app_errors.NotFoundException) rethrow;
       
-      throw StorageException(
+      throw app_errors.StorageException(
         message: 'Erro ao carregar treino',
         originalError: e,
       );
@@ -95,7 +95,7 @@ class MockWorkoutRepository implements WorkoutRepository {
         createdAt: DateTime.now(),
       );
     } catch (e) {
-      throw StorageException(
+      throw app_errors.StorageException(
         message: 'Erro ao criar treino',
         originalError: e,
       );
@@ -113,7 +113,7 @@ class MockWorkoutRepository implements WorkoutRepository {
       final exists = allWorkouts.any((w) => w.id == workout.id);
       
       if (!exists) {
-        throw NotFoundException(
+        throw app_errors.NotFoundException(
           message: 'Treino não encontrado para atualização',
           code: 'workout_not_found',
         );
@@ -122,9 +122,9 @@ class MockWorkoutRepository implements WorkoutRepository {
       // Em um ambiente real, o updatedAt seria atualizado
       return workout.copyWith(updatedAt: DateTime.now());
     } catch (e) {
-      if (e is NotFoundException) rethrow;
+      if (e is app_errors.NotFoundException) rethrow;
       
-      throw StorageException(
+      throw app_errors.StorageException(
         message: 'Erro ao atualizar treino',
         originalError: e,
       );
@@ -142,7 +142,7 @@ class MockWorkoutRepository implements WorkoutRepository {
       final exists = allWorkouts.any((workout) => workout.id == id);
       
       if (!exists) {
-        throw NotFoundException(
+        throw app_errors.NotFoundException(
           message: 'Treino não encontrado para exclusão',
           code: 'workout_not_found',
         );
@@ -151,9 +151,9 @@ class MockWorkoutRepository implements WorkoutRepository {
       // Em um ambiente real, o treino seria removido do banco de dados
       return;
     } catch (e) {
-      if (e is NotFoundException) rethrow;
+      if (e is app_errors.NotFoundException) rethrow;
       
-      throw StorageException(
+      throw app_errors.StorageException(
         message: 'Erro ao excluir treino',
         originalError: e,
       );
@@ -174,11 +174,29 @@ class MockWorkoutRepository implements WorkoutRepository {
         durationMinutes: 20,
         difficulty: 'Iniciante',
         equipment: ['Tapete', 'Bloco de yoga'],
-        exercises: {
-          'warmup': ['Respiração profunda', 'Alongamento leve'],
-          'main': ['Postura do cachorro olhando para baixo', 'Postura da montanha', 'Postura da árvore'],
-          'cooldown': ['Relaxamento final']
-        },
+        sections: [
+          WorkoutSection(
+            name: 'Aquecimento',
+            exercises: [
+              Exercise(name: 'Respiração profunda'),
+              Exercise(name: 'Alongamento leve'),
+            ],
+          ),
+          WorkoutSection(
+            name: 'Parte principal',
+            exercises: [
+              Exercise(name: 'Postura do cachorro olhando para baixo'),
+              Exercise(name: 'Postura da montanha'),
+              Exercise(name: 'Postura da árvore'),
+            ],
+          ),
+          WorkoutSection(
+            name: 'Finalização',
+            exercises: [
+              Exercise(name: 'Relaxamento final'),
+            ],
+          ),
+        ],
         creatorId: 'instrutor1',
         createdAt: now.subtract(const Duration(days: 10)),
       ),
@@ -191,11 +209,30 @@ class MockWorkoutRepository implements WorkoutRepository {
         durationMinutes: 30,
         difficulty: 'Intermediário',
         equipment: ['Tapete', 'Bola pequena'],
-        exercises: {
-          'warmup': ['Respiração de pilates', 'Mobilidade de coluna'],
-          'main': ['The hundred', 'Single leg stretch', 'Double leg stretch', 'Criss cross'],
-          'cooldown': ['Alongamento de coluna']
-        },
+        sections: [
+          WorkoutSection(
+            name: 'Aquecimento',
+            exercises: [
+              Exercise(name: 'Respiração de pilates'),
+              Exercise(name: 'Mobilidade de coluna'),
+            ],
+          ),
+          WorkoutSection(
+            name: 'Parte principal',
+            exercises: [
+              Exercise(name: 'The hundred'),
+              Exercise(name: 'Single leg stretch'),
+              Exercise(name: 'Double leg stretch'),
+              Exercise(name: 'Criss cross'),
+            ],
+          ),
+          WorkoutSection(
+            name: 'Finalização',
+            exercises: [
+              Exercise(name: 'Alongamento de coluna'),
+            ],
+          ),
+        ],
         creatorId: 'instrutor2',
         createdAt: now.subtract(const Duration(days: 7)),
       ),
@@ -208,11 +245,30 @@ class MockWorkoutRepository implements WorkoutRepository {
         durationMinutes: 15,
         difficulty: 'Avançado',
         equipment: ['Tapete'],
-        exercises: {
-          'warmup': ['Jumping jacks', 'Corrida no lugar'],
-          'main': ['Burpees', 'Mountain climbers', 'Jumping squats', 'Push-ups'],
-          'cooldown': ['Alongamentos gerais']
-        },
+        sections: [
+          WorkoutSection(
+            name: 'Aquecimento',
+            exercises: [
+              Exercise(name: 'Jumping jacks'),
+              Exercise(name: 'Corrida no lugar'),
+            ],
+          ),
+          WorkoutSection(
+            name: 'Parte principal',
+            exercises: [
+              Exercise(name: 'Burpees'),
+              Exercise(name: 'Mountain climbers'),
+              Exercise(name: 'Jumping squats'),
+              Exercise(name: 'Push-ups'),
+            ],
+          ),
+          WorkoutSection(
+            name: 'Finalização',
+            exercises: [
+              Exercise(name: 'Alongamentos gerais'),
+            ],
+          ),
+        ],
         creatorId: 'instrutor3',
         createdAt: now.subtract(const Duration(days: 5)),
       ),
@@ -225,11 +281,32 @@ class MockWorkoutRepository implements WorkoutRepository {
         durationMinutes: 45,
         difficulty: 'Intermediário',
         equipment: ['Halteres', 'Banco'],
-        exercises: {
-          'warmup': ['Mobilidade articular', 'Ativação muscular'],
-          'main': ['Agachamento com peso', 'Supino com halteres', 'Remada', 'Elevação lateral'],
-          'cooldown': ['Alongamento de peito', 'Alongamento de costas', 'Alongamento de pernas']
-        },
+        sections: [
+          WorkoutSection(
+            name: 'Aquecimento',
+            exercises: [
+              Exercise(name: 'Mobilidade articular'),
+              Exercise(name: 'Ativação muscular'),
+            ],
+          ),
+          WorkoutSection(
+            name: 'Parte principal',
+            exercises: [
+              Exercise(name: 'Agachamento com peso'),
+              Exercise(name: 'Supino com halteres'),
+              Exercise(name: 'Remada'),
+              Exercise(name: 'Elevação lateral'),
+            ],
+          ),
+          WorkoutSection(
+            name: 'Finalização',
+            exercises: [
+              Exercise(name: 'Alongamento de peito'),
+              Exercise(name: 'Alongamento de costas'),
+              Exercise(name: 'Alongamento de pernas'),
+            ],
+          ),
+        ],
         creatorId: 'instrutor4',
         createdAt: now.subtract(const Duration(days: 3)),
       ),
@@ -242,11 +319,31 @@ class MockWorkoutRepository implements WorkoutRepository {
         durationMinutes: 40,
         difficulty: 'Intermediário',
         equipment: ['Tapete', 'Bloco de yoga'],
-        exercises: {
-          'warmup': ['Saudação ao sol A', 'Saudação ao sol B'],
-          'main': ['Guerreiro I', 'Guerreiro II', 'Triângulo', 'Meia lua'],
-          'cooldown': ['Postura da criança', 'Savasana']
-        },
+        sections: [
+          WorkoutSection(
+            name: 'Aquecimento',
+            exercises: [
+              Exercise(name: 'Saudação ao sol A'),
+              Exercise(name: 'Saudação ao sol B'),
+            ],
+          ),
+          WorkoutSection(
+            name: 'Parte principal',
+            exercises: [
+              Exercise(name: 'Guerreiro I'),
+              Exercise(name: 'Guerreiro II'),
+              Exercise(name: 'Triângulo'),
+              Exercise(name: 'Meia lua'),
+            ],
+          ),
+          WorkoutSection(
+            name: 'Finalização',
+            exercises: [
+              Exercise(name: 'Postura da criança'),
+              Exercise(name: 'Savasana'),
+            ],
+          ),
+        ],
         creatorId: 'instrutor1',
         createdAt: now.subtract(const Duration(days: 2)),
       ),
@@ -259,11 +356,31 @@ class MockWorkoutRepository implements WorkoutRepository {
         durationMinutes: 20,
         difficulty: 'Iniciante',
         equipment: ['Tapete', 'Garrafa de água como peso'],
-        exercises: {
-          'warmup': ['Marcha no lugar', 'Rotação de tronco'],
-          'main': ['Agachamento simples', 'Prancha', 'Elevação de joelhos', 'Flexão modificada'],
-          'cooldown': ['Alongamento de quadríceps', 'Alongamento de panturrilhas']
-        },
+        sections: [
+          WorkoutSection(
+            name: 'Aquecimento',
+            exercises: [
+              Exercise(name: 'Marcha no lugar'),
+              Exercise(name: 'Rotação de tronco'),
+            ],
+          ),
+          WorkoutSection(
+            name: 'Parte principal',
+            exercises: [
+              Exercise(name: 'Agachamento simples'),
+              Exercise(name: 'Prancha'),
+              Exercise(name: 'Elevação de joelhos'),
+              Exercise(name: 'Flexão modificada'),
+            ],
+          ),
+          WorkoutSection(
+            name: 'Finalização',
+            exercises: [
+              Exercise(name: 'Alongamento de quadríceps'),
+              Exercise(name: 'Alongamento de panturrilhas'),
+            ],
+          ),
+        ],
         creatorId: 'instrutor3',
         createdAt: now.subtract(const Duration(days: 1)),
       ),
@@ -287,7 +404,7 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
       
       return response.map((json) => Workout.fromJson(json)).toList();
     } on PostgrestException catch (e) {
-      throw StorageException(
+      throw app_errors.StorageException(
         message: 'Erro ao carregar treinos do Supabase',
         originalError: e,
         code: e.code,
@@ -309,7 +426,7 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
       
       return response.map((json) => Workout.fromJson(json)).toList();
     } on PostgrestException catch (e) {
-      throw StorageException(
+      throw app_errors.StorageException(
         message: 'Erro ao carregar treinos por categoria do Supabase',
         originalError: e,
         code: e.code,
@@ -332,14 +449,14 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
       return Workout.fromJson(response);
     } on PostgrestException catch (e) {
       if (e.code == 'PGRST116') {
-        throw NotFoundException(
+        throw app_errors.NotFoundException(
           message: 'Treino não encontrado',
           originalError: e,
           code: 'workout_not_found',
         );
       }
       
-      throw StorageException(
+      throw app_errors.StorageException(
         message: 'Erro ao carregar treino do Supabase',
         originalError: e,
         code: e.code,
@@ -368,7 +485,7 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
       
       return Workout.fromJson(response);
     } on PostgrestException catch (e) {
-      throw StorageException(
+      throw app_errors.StorageException(
         message: 'Erro ao criar treino no Supabase',
         originalError: e,
         code: e.code,
@@ -395,14 +512,14 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
       return Workout.fromJson(response);
     } on PostgrestException catch (e) {
       if (e.code == 'PGRST116') {
-        throw NotFoundException(
+        throw app_errors.NotFoundException(
           message: 'Treino não encontrado para atualização',
           originalError: e,
           code: 'workout_not_found',
         );
       }
       
-      throw StorageException(
+      throw app_errors.StorageException(
         message: 'Erro ao atualizar treino no Supabase',
         originalError: e,
         code: e.code,
@@ -421,7 +538,7 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
           .delete()
           .eq('id', id);
     } on PostgrestException catch (e) {
-      throw StorageException(
+      throw app_errors.StorageException(
         message: 'Erro ao excluir treino no Supabase',
         originalError: e,
         code: e.code,

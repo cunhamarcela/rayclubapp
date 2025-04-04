@@ -33,7 +33,7 @@ abstract class IAuthRepository {
 
   /// Sign in with Google OAuth
   /// Throws [AuthException] if sign in fails
-  Future<supabase.User> signInWithGoogle();
+  Future<supabase.Session?> signInWithGoogle();
 }
 
 /// Implementation of [IAuthRepository] using Supabase
@@ -200,23 +200,16 @@ class AuthRepository implements IAuthRepository {
   }
   
   @override
-  Future<supabase.User> signInWithGoogle() async {
+  Future<supabase.Session?> signInWithGoogle() async {
     try {
       final response = await _supabaseClient.auth.signInWithOAuth(
         supabase.OAuthProvider.google,
         redirectTo: Uri.base.toString(),
       );
       
-      if (!response.session?.provider == 'google') {
-        throw AuthException(message: 'Google sign in failed or was cancelled');
-      }
-      
-      final user = _supabaseClient.auth.currentUser;
-      if (user == null) {
-        throw AuthException(message: 'Google sign in failed: no user returned');
-      }
-      
-      return user;
+      // Retornamos a sessão atual, pois o fluxo OAuth envolve redirecionamento
+      // e a sessão pode não estar imediatamente disponível na resposta
+      return _supabaseClient.auth.currentSession;
     } on supabase.AuthException catch (e, stackTrace) {
       throw AuthException(
         message: e.message,

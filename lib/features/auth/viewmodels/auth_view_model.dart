@@ -3,6 +3,7 @@ import '../models/user.dart';
 import '../models/auth_state.dart';
 import '../repositories/auth_repository.dart';
 import '../../../core/errors/app_exception.dart';
+import '../../../core/providers/providers.dart';
 
 /// Provider global para o AuthViewModel
 final authViewModelProvider = StateNotifierProvider<AuthViewModel, AuthState>((ref) {
@@ -132,11 +133,34 @@ class AuthViewModel extends StateNotifier<AuthState> {
   Future<void> signInWithGoogle() async {
     try {
       state = const AuthState.loading();
-      final user = await _repository.signInWithGoogle();
-      state = AuthState.authenticated(
-        user: AppUser.fromSupabaseUser(user),
-      );
+      
+      // Tenta obter a sessão usando o método de signin do repositório
+      final session = await _repository.signInWithGoogle();
+      
+      // Verifica se foi possível obter uma sessão válida
+      if (session != null) {
+        // Tenta obter o usuário atual
+        final user = await _repository.getCurrentUser();
+        
+        if (user != null) {
+          // Login bem-sucedido, usuário autenticado
+          state = AuthState.authenticated(
+            user: AppUser.fromSupabaseUser(user),
+          );
+        } else {
+          // Sessão existe mas não foi possível obter o usuário
+          state = const AuthState.error(
+            message: 'Login com Google bem-sucedido, mas usuário não encontrado',
+          );
+        }
+      } else {
+        // Não foi possível obter uma sessão (usuário cancelou ou outro erro)
+        state = const AuthState.error(
+          message: 'Falha no login com Google ou processo cancelado',
+        );
+      }
     } catch (e) {
+      // Erros durante o processo de login
       state = AuthState.error(message: _getErrorMessage(e));
     }
   }
