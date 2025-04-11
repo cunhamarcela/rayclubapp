@@ -1,7 +1,22 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+// Project imports:
+import 'package:ray_club_app/features/workout/models/workout_model.dart';
 import 'package:ray_club_app/features/workout/screens/workout_detail_screen.dart';
-import 'package:ray_club_app/models/workout.dart';
+import 'package:ray_club_app/features/workout/viewmodels/states/workout_state.dart';
+import 'package:ray_club_app/features/workout/viewmodels/workout_view_model.dart';
+
+class MockWorkoutViewModel extends WorkoutViewModel {
+  @override
+  Future<void> selectWorkout(String id) async {
+    // Não faz nada - necessário para mocks
+  }
+}
 
 void main() {
   // Create a sample workout for testing
@@ -26,8 +41,24 @@ void main() {
   testWidgets('renders workout detail screen correctly', (WidgetTester tester) async {
     // Build our app and trigger a frame
     await tester.pumpWidget(
-      MaterialApp(
-        home: WorkoutDetailScreen(workout: testWorkout),
+      ProviderScope(
+        overrides: [
+          workoutViewModelProvider.overrideWith((ref) {
+            final viewModel = MockWorkoutViewModel();
+            final state = WorkoutState.selectedWorkout(
+              workout: testWorkout,
+              workouts: [],
+              filteredWorkouts: [],
+              categories: ['Yoga'],
+              filter: WorkoutFilter(),
+            );
+            viewModel.state = state;
+            return viewModel;
+          }),
+        ],
+        child: MaterialApp(
+          home: WorkoutDetailScreen(workoutId: '1'),
+        ),
       ),
     );
 
@@ -66,8 +97,24 @@ void main() {
   testWidgets('tapping start button shows snackbar', (WidgetTester tester) async {
     // Build our app and trigger a frame
     await tester.pumpWidget(
-      MaterialApp(
-        home: WorkoutDetailScreen(workout: testWorkout),
+      ProviderScope(
+        overrides: [
+          workoutViewModelProvider.overrideWith((ref) {
+            final viewModel = MockWorkoutViewModel();
+            final state = WorkoutState.selectedWorkout(
+              workout: testWorkout,
+              workouts: [],
+              filteredWorkouts: [],
+              categories: ['Yoga'],
+              filter: WorkoutFilter(),
+            );
+            viewModel.state = state;
+            return viewModel;
+          }),
+        ],
+        child: MaterialApp(
+          home: WorkoutDetailScreen(workoutId: '1'),
+        ),
       ),
     );
 
@@ -85,8 +132,24 @@ void main() {
   testWidgets('exercise items are displayed correctly', (WidgetTester tester) async {
     // Build our app and trigger a frame
     await tester.pumpWidget(
-      MaterialApp(
-        home: WorkoutDetailScreen(workout: testWorkout),
+      ProviderScope(
+        overrides: [
+          workoutViewModelProvider.overrideWith((ref) {
+            final viewModel = MockWorkoutViewModel();
+            final state = WorkoutState.selectedWorkout(
+              workout: testWorkout,
+              workouts: [],
+              filteredWorkouts: [],
+              categories: ['Yoga'],
+              filter: WorkoutFilter(),
+            );
+            viewModel.state = state;
+            return viewModel;
+          }),
+        ],
+        child: MaterialApp(
+          home: WorkoutDetailScreen(workoutId: '1'),
+        ),
       ),
     );
 

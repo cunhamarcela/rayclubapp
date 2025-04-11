@@ -1,5 +1,10 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:ray_club_app/core/theme/app_colors.dart';
+import 'package:ray_club_app/core/theme/app_gradients.dart';
+import 'package:ray_club_app/core/theme/app_textures.dart';
 import 'package:ray_club_app/core/theme/app_typography.dart';
 import 'package:ray_club_app/features/workout/models/workout_model.dart';
 
@@ -17,196 +22,263 @@ class WorkoutCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      color: AppColors.backgroundLight,
+      color: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      elevation: 4,
+      elevation: 2,
+      shadowColor: Colors.black.withOpacity(0.1),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(context),
-            _buildBody(context),
-            _buildFooter(context),
+            Stack(
+              children: [
+                // Imagem do treino
+                if (workout.imageUrl != null)
+                  ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
+                    ),
+                    child: Image.network(
+                      workout.imageUrl!,
+                      width: double.infinity,
+                      height: 150,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          width: double.infinity,
+                          height: 150,
+                          decoration: BoxDecoration(
+                            gradient: AppGradients.primaryGradient,
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(16),
+                              topRight: Radius.circular(16),
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.fitness_center,
+                            size: 50,
+                            color: Colors.white,
+                          ),
+                        );
+                      },
+                    ),
+                  )
+                else
+                  Container(
+                    width: double.infinity,
+                    height: 150,
+                    decoration: BoxDecoration(
+                      gradient: AppGradients.primaryGradient,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(16),
+                        topRight: Radius.circular(16),
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.fitness_center,
+                      size: 50,
+                      color: Colors.white,
+                    ),
+                  ),
+                  
+                // Gradient overlay for better readability
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: [
+                            Colors.black.withOpacity(0.6),
+                            Colors.transparent,
+                          ],
+                          stops: const [0.0, 0.6],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                  
+                // Badge de duração (overlay)
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.timer,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${workout.durationMinutes} min',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Badge de categoria (overlay)
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.secondary.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      workout.type,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.textDark,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            AppTextures.addWaveTexture(
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      workout.title,
+                      style: AppTypography.headingSmall.copyWith(
+                        color: AppColors.textDark,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        // Ícone de dificuldade
+                        Icon(
+                          _getDifficultyIcon(workout.difficulty),
+                          size: 16,
+                          color: _getDifficultyColor(workout.difficulty),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          workout.difficulty,
+                          style: AppTypography.bodySmall.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Equipamentos necessários
+                        const Icon(
+                          Icons.fitness_center,
+                          size: 16,
+                          color: AppColors.textSecondary,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            workout.equipment.isEmpty 
+                                ? 'Sem equipamento' 
+                                : workout.equipment.join(', '),
+                            style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              opacity: 0.05,
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      height: 160,
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-        image: workout.imageUrl.isNotEmpty
-            ? DecorationImage(
-                image: NetworkImage(workout.imageUrl),
-                fit: BoxFit.cover,
-              )
-            : null,
-        color: workout.imageUrl.isEmpty ? AppColors.primary : null,
-      ),
-      child: Stack(
-        children: [
-          // Gradiente sobre a imagem para legibilidade do texto
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  Colors.black.withOpacity(0.7),
-                ],
-                stops: const [0.6, 1.0],
-              ),
-            ),
-          ),
-          // Categoria (tipo) do treino
-          Positioned(
-            top: 16,
-            left: 16,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                workout.type,
-                style: AppTypography.bodySmall.copyWith(
-                  color: AppColors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          // Título do treino
-          Positioned(
-            bottom: 16,
-            left: 16,
-            right: 16,
-            child: Text(
-              workout.title,
-              style: AppTypography.headingSmall.copyWith(
-                color: AppColors.white,
-                fontWeight: FontWeight.bold,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
+  IconData _getDifficultyIcon(String difficulty) {
+    switch (difficulty.toLowerCase()) {
+      case 'iniciante':
+      case 'fácil':
+      case 'beginner':
+      case 'easy':
+        return Icons.star_border;
+      case 'intermediário':
+      case 'médio':
+      case 'intermediate':
+      case 'medium':
+        return Icons.star_half;
+      case 'avançado':
+      case 'difícil':
+      case 'advanced':
+      case 'hard':
+        return Icons.star;
+      default:
+        return Icons.star_border;
+    }
   }
 
-  Widget _buildBody(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Descrição do treino
-          Text(
-            workout.description,
-            style: AppTypography.bodyMedium.copyWith(
-              color: AppColors.textLight,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 16),
-          // Número de exercícios
-          Row(
-            children: [
-              const Icon(
-                Icons.fitness_center,
-                color: AppColors.primary,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '${workout.exercises.length} ${workout.exercises.length == 1 ? 'exercício' : 'exercícios'}',
-                style: AppTypography.bodyMedium.copyWith(
-                  color: AppColors.white,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFooter(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Duração
-          _buildInfoChip(
-            icon: Icons.timer,
-            text: '${workout.durationMinutes} min',
-          ),
-          // Dificuldade
-          _buildInfoChip(
-            icon: Icons.trending_up,
-            text: workout.difficulty,
-          ),
-          // Botão para acessar o treino
-          ElevatedButton(
-            onPressed: onTap,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-            child: Text(
-              'Ver Treino',
-              style: AppTypography.bodySmall.copyWith(
-                color: AppColors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoChip({required IconData icon, required String text}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.backgroundMedium,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color: AppColors.primary,
-            size: 16,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            text,
-            style: AppTypography.bodySmall.copyWith(
-              color: AppColors.white,
-            ),
-          ),
-        ],
-      ),
-    );
+  Color _getDifficultyColor(String difficulty) {
+    switch (difficulty.toLowerCase()) {
+      case 'iniciante':
+      case 'fácil':
+      case 'beginner':
+      case 'easy':
+        return AppColors.secondary;
+      case 'intermediário':
+      case 'médio':
+      case 'intermediate':
+      case 'medium':
+        return AppColors.accent;
+      case 'avançado':
+      case 'difícil':
+      case 'advanced':
+      case 'hard':
+        return AppColors.error;
+      default:
+        return AppColors.secondary;
+    }
   }
 } 

@@ -1,7 +1,11 @@
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ray_club_app/core/errors/app_exception.dart';
-import 'package:ray_club_app/features/nutrition/models/meal.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+// Project imports:
+import 'package:ray_club_app/core/errors/app_exception.dart' as app_errors;
+import 'package:ray_club_app/features/nutrition/models/meal.dart';
+import 'package:ray_club_app/features/nutrition/repositories/meal_repository_interface.dart';
 
 /// Provider for MealRepository
 final mealRepositoryProvider = Provider<MealRepository>((ref) {
@@ -9,12 +13,13 @@ final mealRepositoryProvider = Provider<MealRepository>((ref) {
 });
 
 /// Repository for managing meal data
-class MealRepository {
+class MealRepository implements MealRepositoryInterface {
   final SupabaseClient _client;
   
   MealRepository(this._client);
   
   /// Fetch all meals for a user
+  @override
   Future<List<Meal>> getMeals({
     required String userId,
     DateTime? startDate,
@@ -27,20 +32,29 @@ class MealRepository {
           .eq('user_id', userId)
           .order('date_time', ascending: false);
       
-      // Add date filters if provided
+      // Primeiro fazemos o select, depois aplicamos os filtros
+      final response = await query;
+      
+      // Filtramos no Dart se as datas foram fornecidas
+      var filteredData = response;
+      
       if (startDate != null) {
-        query = query.gte('date_time', startDate.toIso8601String());
+        filteredData = filteredData.where(
+          (data) => DateTime.parse(data['date_time']).isAfter(startDate) ||
+                    DateTime.parse(data['date_time']).isAtSameMomentAs(startDate)
+        ).toList();
       }
       
       if (endDate != null) {
-        query = query.lte('date_time', endDate.toIso8601String());
+        filteredData = filteredData.where(
+          (data) => DateTime.parse(data['date_time']).isBefore(endDate) ||
+                    DateTime.parse(data['date_time']).isAtSameMomentAs(endDate)
+        ).toList();
       }
       
-      final response = await query;
-      
-      return response.map((data) => Meal.fromJson(data)).toList();
+      return filteredData.map((data) => Meal.fromJson(data)).toList();
     } catch (e, stackTrace) {
-      throw StorageException(
+      throw app_errors.StorageException(
         message: 'Failed to fetch meals',
         originalError: e,
         stackTrace: stackTrace,
@@ -49,6 +63,7 @@ class MealRepository {
   }
   
   /// Add a new meal
+  @override
   Future<Meal> addMeal(Meal meal, String userId) async {
     try {
       final mealJson = meal.toJson();
@@ -62,7 +77,7 @@ class MealRepository {
       
       return Meal.fromJson(response);
     } catch (e, stackTrace) {
-      throw StorageException(
+      throw app_errors.StorageException(
         message: 'Failed to add meal',
         originalError: e,
         stackTrace: stackTrace,
@@ -71,6 +86,7 @@ class MealRepository {
   }
   
   /// Update an existing meal
+  @override
   Future<Meal> updateMeal(Meal meal) async {
     try {
       final response = await _client
@@ -82,7 +98,7 @@ class MealRepository {
       
       return Meal.fromJson(response);
     } catch (e, stackTrace) {
-      throw StorageException(
+      throw app_errors.StorageException(
         message: 'Failed to update meal',
         originalError: e,
         stackTrace: stackTrace,
@@ -91,6 +107,7 @@ class MealRepository {
   }
   
   /// Delete a meal
+  @override
   Future<void> deleteMeal(String mealId) async {
     try {
       await _client
@@ -98,7 +115,7 @@ class MealRepository {
           .delete()
           .eq('id', mealId);
     } catch (e, stackTrace) {
-      throw StorageException(
+      throw app_errors.StorageException(
         message: 'Failed to delete meal',
         originalError: e,
         stackTrace: stackTrace,

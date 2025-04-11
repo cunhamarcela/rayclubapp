@@ -13,27 +13,77 @@ O Ray Club App segue o padrão Model-View-ViewModel (MVVM) com Riverpod para ger
 ```
 lib/
 ├── core/                      # Componentes essenciais da aplicação
+│   ├── components/            # Componentes base reutilizáveis
+│   ├── config/                # Configurações da aplicação
 │   ├── constants/             # Constantes da aplicação (cores, strings, etc.)
+│   ├── di/                    # Injeção de dependências
 │   ├── errors/                # Sistema unificado de tratamento de erros
+│   ├── events/                # Sistema de eventos para comunicação entre features
+│   ├── exceptions/            # Definições de exceções específicas 
+│   ├── localization/          # Suporte a múltiplos idiomas
+│   ├── offline/               # Gerenciamento de estado offline
 │   ├── providers/             # Providers globais do Riverpod
 │   ├── router/                # Configuração de rotas com auto_route
-│   ├── services/              # Serviços da aplicação (storage, analytics, etc.)
-│   └── utils/                 # Utilitários e helpers
+│   ├── services/              # Serviços core da aplicação
+│   ├── tests/                 # Testes para componentes core
+│   ├── theme/                 # Definições de tema e estilos
+│   └── widgets/               # Widgets compartilhados entre features
+│
+├── db/                        # Configuração e acesso ao banco de dados
 │
 ├── features/                  # Recursos da aplicação organizados por domínio
+│   ├── app/                   # Configuração geral do aplicativo
 │   ├── auth/                  # Feature de autenticação
+│   ├── benefits/              # Feature de benefícios e cupons
+│   ├── challenges/            # Feature de desafios
 │   ├── home/                  # Feature da tela inicial
+│   ├── intro/                 # Feature de introdução ao app
 │   ├── nutrition/             # Feature de nutrição (modelo para outras features)
-│   └── workouts/              # Feature de treinos
+│   ├── profile/               # Feature de perfil do usuário
+│   ├── progress/              # Feature de acompanhamento de progresso
+│   └── workout/               # Feature de treinos
 │       ├── models/            # Modelos de dados para a feature
 │       ├── repositories/      # Repositórios para acesso a dados
 │       ├── screens/           # Telas da feature
 │       ├── viewmodels/        # ViewModels para gerenciar o estado da feature
 │       └── widgets/           # Widgets específicos da feature
 │
-└── shared/                    # Componentes compartilhados entre features
-    ├── widgets/               # Widgets reutilizáveis
-    └── utils/                 # Utilitários compartilhados
+├── services/                  # Serviços globais da aplicação
+│   ├── api_service.dart       # Serviço de API
+│   ├── auth_service.dart      # Serviço de autenticação
+│   ├── deep_link_service.dart # Serviço para manipulação de deep links
+│   ├── http_service.dart      # Cliente HTTP centralizado com interceptors
+│   ├── notification_service.dart # Serviço de notificações
+│   ├── remote_logging_service.dart # Logging remoto
+│   ├── secure_storage_service.dart # Armazenamento seguro
+│   ├── storage_service.dart   # Interface de abstração para armazenamento
+│   ├── supabase_service.dart  # Wrapper para serviços do Supabase
+│   └── supabase_storage_service.dart # Implementação do storage com Supabase
+│
+├── shared/                    # Componentes compartilhados entre features
+│   └── widgets/               # Widgets reutilizáveis
+│
+├── utils/                     # Utilitários globais
+│   └── performance_monitor.dart # Monitoramento de performance
+│
+└── main.dart                  # Ponto de entrada da aplicação
+```
+
+## Estrutura de Testes
+
+```
+test/
+├── core/                      # Testes para componentes core
+├── features/                  # Testes para features individuais
+│   ├── auth/                  # Testes para autenticação
+│   ├── nutrition/             # Testes para nutrição
+│   │   ├── viewmodels/        # Testes para viewmodels
+│   │   └── nutrition_screen_test.dart # Testes para UI
+│   └── [outras features]/     # Testes para outras features
+├── integration/               # Testes de integração entre componentes
+├── services/                  # Testes para serviços
+├── utils/                     # Testes para utilitários
+└── README.md                  # Documentação de testes
 ```
 
 ## Camadas da Arquitetura
@@ -168,6 +218,116 @@ class NutritionScreen extends ConsumerWidget {
 - **FutureProvider**: Para valores assíncronos que são carregados uma vez
 - **StreamProvider**: Para fluxos de dados que mudam ao longo do tempo
 
+## Comunicação Entre Features
+
+O Ray Club App implementa dois mecanismos principais para comunicação entre features, permitindo que features interajam sem criar dependências diretas:
+
+### 1. Estado Compartilhado via SharedAppState
+
+O `SharedAppState` é um estado global imutável que pode ser acessado e modificado por qualquer feature:
+
+```dart
+// Definição do estado compartilhado
+@freezed
+class SharedAppState with _$SharedAppState {
+  const factory SharedAppState({
+    String? userId,
+    String? userName,
+    @Default(false) bool isSubscriber,
+    String? currentChallengeId,
+    String? currentWorkoutId,
+    @Default(false) bool isOfflineMode,
+    String? lastVisitedRoute,
+    @Default({}) Map<String, dynamic> customData,
+  }) = _SharedAppState;
+}
+
+// Provider global
+final sharedStateProvider = StateNotifierProvider<SharedStateNotifier, SharedAppState>((ref) {
+  final sharedPreferences = ref.watch(sharedPreferencesProvider);
+  return SharedStateNotifier(sharedPreferences);
+});
+```
+
+#### Principais Características:
+- Estado persistente entre sessões via SharedPreferences
+- Validação de entradas para garantir consistência
+- Dados customizáveis via mapa `customData`
+- Uso simplificado com Riverpod
+
+#### Exemplo de Uso:
+```dart
+// Leitura do estado
+final userName = ref.watch(sharedStateProvider).userName;
+
+// Modificação do estado
+ref.read(sharedStateProvider.notifier).updateUserInfo(
+  userName: 'Novo Nome',
+  isSubscriber: true,
+);
+```
+
+### 2. Sistema de Eventos via AppEventBus
+
+O `AppEventBus` implementa um padrão publish-subscribe para comunicação assíncrona entre features:
+
+```dart
+// Definição de tipos de eventos
+@freezed
+class AppEvent with _$AppEvent {
+  const factory AppEvent.auth({
+    required String type,
+    String? userId,
+    Map<String, dynamic>? data,
+  }) = AuthEvent;
+  
+  const factory AppEvent.workout({...}) = WorkoutEvent;
+  const factory AppEvent.challenge({...}) = ChallengeEvent;
+  // outros tipos de eventos...
+}
+
+// Provider para o EventBus
+final appEventBusProvider = Provider<AppEventBus>((ref) {
+  final eventBus = AppEventBus();
+  ref.onDispose(() => eventBus.dispose());
+  return eventBus;
+});
+```
+
+#### Principais Características:
+- Tipagem forte com Freezed
+- Filtros para tipos específicos de eventos
+- Tratamento de erros em listeners
+- Prevenção de memory leaks
+- Mecanismo de log para depuração
+
+#### Exemplo de Uso:
+```dart
+// Publicar evento
+ref.read(appEventBusProvider).publish(
+  AppEvent.challenge(
+    type: EventTypes.challengeJoined,
+    challengeId: 'challenge-123',
+    data: {'joinedAt': DateTime.now().toIso8601String()},
+  ),
+);
+
+// Escutar eventos em um ViewModel
+final subscription = ref.read(appEventBusProvider).listen(
+  ref.read(challengeEventsProvider(EventTypes.challengeCompleted)).stream,
+  (event) {
+    // Reagir ao evento
+  }
+);
+
+// Importante: cancelar a subscription no dispose
+@override
+void dispose() {
+  subscription.cancel();
+  super.dispose();
+}
+```
+
 ## Sistema de Tratamento de Erros
 
 O app implementa um sistema unificado de tratamento de erros com os seguintes componentes:
@@ -241,6 +401,100 @@ class AppProviderObserver extends ProviderObserver {
 }
 ```
 
+## Sistema de Navegação e Roteamento
+
+O app utiliza auto_route para gerenciamento de rotas typesafe:
+
+```dart
+@AutoRouterConfig()
+class AppRouter extends $AppRouter {
+  @override
+  List<AutoRoute> get routes => [
+    // Auth routes
+    AutoRoute(
+      page: LoginRoute.page, 
+      path: '/login',
+      guards: [AnonymousGuard()],
+    ),
+    AutoRoute(
+      page: RegisterRoute.page, 
+      path: '/register',
+      guards: [AnonymousGuard()],
+    ),
+    
+    // Main app routes
+    AutoRoute(
+      page: HomeRoute.page,
+      path: '/home',
+      guards: [AuthGuard()],
+      children: [
+        AutoRoute(
+          page: DashboardRoute.page,
+          path: 'dashboard',
+          initial: true,
+        ),
+        AutoRoute(
+          page: WorkoutListRoute.page,
+          path: 'workouts',
+        ),
+        // Outras rotas filhas...
+      ],
+    ),
+    
+    // Rotas específicas
+    AutoRoute(
+      page: ChallengeDetailsRoute.page,
+      path: '/challenge/:id',
+      guards: [AuthGuard()],
+    ),
+    
+    // Rota inicial
+    AutoRoute(
+      page: IntroRoute.page,
+      path: '/',
+      initial: true,
+    ),
+    
+    // Rotas de redirecionamento
+    AutoRoute(
+      page: SplashRoute.page,
+      path: '/splash',
+    ),
+    
+    // Rota 404
+    AutoRoute(
+      page: NotFoundRoute.page,
+      path: '*',
+    ),
+  ];
+}
+```
+
+### Guardas de Rota
+
+Para proteção de rotas autenticadas:
+
+```dart
+class AuthGuard extends AutoRouteGuard {
+  @override
+  Future<bool> canNavigate(
+    BuildContext context,
+    NavigationResolver resolver,
+  ) async {
+    final supabase = Supabase.instance.client;
+    final session = supabase.auth.currentSession;
+    
+    if (session != null) {
+      return true;
+    }
+    
+    // Redirecionar para login
+    AutoRouter.of(context).replaceAll([const LoginRoute()]);
+    return false;
+  }
+}
+```
+
 ## Testes
 
 Cada camada pode ser testada independentemente:
@@ -249,6 +503,38 @@ Cada camada pode ser testada independentemente:
 - **Repositories**: Testes de integração para acesso a dados
 - **ViewModels**: Testes unitários com mocks para lógica de UI
 - **Views**: Testes de widget para comportamento da UI
+- **Core**: Testes para componentes essenciais (SharedAppState, AppEventBus, etc.)
+
+```dart
+// Exemplo de teste de ViewModel
+void main() {
+  late MockMealRepository repository;
+  late MealViewModel viewModel;
+
+  setUp(() {
+    repository = MockMealRepository();
+    viewModel = MealViewModel(repository);
+  });
+
+  test('loadMeals atualiza estado corretamente em caso de sucesso', () async {
+    // Arrange
+    final meals = [
+      Meal(id: '1', name: 'Café da manhã', calories: 500, dateTime: DateTime.now()),
+      Meal(id: '2', name: 'Almoço', calories: 800, dateTime: DateTime.now()),
+    ];
+    when(() => repository.getMeals(userId: any(named: 'userId')))
+        .thenAnswer((_) async => meals);
+
+    // Act
+    await viewModel.loadMeals('user-123');
+
+    // Assert
+    expect(viewModel.state.isLoading, false);
+    expect(viewModel.state.meals, meals);
+    expect(viewModel.state.error, null);
+  });
+}
+```
 
 ## Integração com Supabase
 
@@ -270,9 +556,90 @@ O banco de dados PostgreSQL do Supabase é utilizado com:
 ### Storage
 
 O armazenamento de arquivos usa o Supabase Storage:
-- Bucket "workout_images" para fotos de treinos
+- Buckets configurados para diferentes tipos de conteúdo
 - Políticas de acesso baseadas no usuário
 - Upload otimizado com compressão de imagens
+
+## Suporte Offline
+
+O aplicativo implementa suporte completo a operações offline:
+
+### Cache Local
+
+Utilizando Hive para armazenamento local:
+
+```dart
+class CacheService {
+  late Box<dynamic> _cache;
+  
+  Future<void> initialize() async {
+    await Hive.initFlutter();
+    _cache = await Hive.openBox('app_cache');
+  }
+  
+  Future<void> put(String key, dynamic value) async {
+    await _cache.put(key, value);
+  }
+  
+  T? get<T>(String key) {
+    return _cache.get(key) as T?;
+  }
+}
+```
+
+### Fila de Operações
+
+Sistema para operações quando offline:
+
+```dart
+class OperationQueue {
+  final List<PendingOperation> _pendingOperations = [];
+  
+  void addOperation(PendingOperation operation) {
+    _pendingOperations.add(operation);
+    _saveQueue();
+  }
+  
+  Future<void> processQueue() async {
+    if (_pendingOperations.isEmpty) return;
+    
+    for (final operation in List.from(_pendingOperations)) {
+      try {
+        await operation.execute();
+        _pendingOperations.remove(operation);
+      } catch (e) {
+        // Falha ao processar, manter na fila
+      }
+    }
+    
+    _saveQueue();
+  }
+}
+```
+
+### Sincronização
+
+Mecanismo para sincronização automática quando voltar online:
+
+```dart
+class ConnectivityService {
+  final StreamController<bool> _connectivityStream = StreamController.broadcast();
+  
+  Stream<bool> get connectivityStream => _connectivityStream.stream;
+  
+  void initialize() {
+    Connectivity().onConnectivityChanged.listen((result) {
+      final isConnected = result != ConnectivityResult.none;
+      _connectivityStream.add(isConnected);
+      
+      if (isConnected) {
+        // Processar fila quando voltar online
+        getIt<OperationQueue>().processQueue();
+      }
+    });
+  }
+}
+```
 
 ## Convenções de Código
 
@@ -295,20 +662,30 @@ O armazenamento de arquivos usa o Supabase Storage:
    - Estados complexos com classes Freezed
    - Estados simples com StateProvider
 
+5. **Comunicação entre Features**:
+   - Usar SharedAppState para estado compartilhado
+   - Usar AppEventBus para comunicação assíncrona
+   - Documentar eventos e dados compartilhados
+   - Evitar acoplamento direto entre features
+
 ## Status da Implementação
 
 ### Features Implementadas (100%)
-- Auth, Home, Nutrition, Workout, Profile, Challenges
-
-### Features em Desenvolvimento
-- Benefits (~90%)
+- Auth, Home, Nutrition, Workout, Profile, Challenges, Benefits, Intro, Progress
+- Comunicação entre features (SharedAppState e AppEventBus)
+- Sistema de expiração de cupons com verificação automática
+- Sistema de fila para operações offline
+- Widget de indicador de conectividade
+- Extração de strings hardcoded para classe centralizada
+- Cache estratégico para melhorar experiência offline
+- Sistema de roteamento e guardas de rota com auto_route
+- Integração completa com Deep Links para autenticação social
 
 ### Features Removidas do Escopo
 - Community
 
 ## Próximos Passos
 
-1. Completar a feature Benefits (falta sistema de expiração de cupons)
-2. Aumentar cobertura de testes
-3. Implementar cache estratégico para melhoria de desempenho
-4. Otimizar renderização de UI para listas grandes 
+1. Implementar testes para componentes compartilhados
+2. Reduzir tamanho do aplicativo através de otimização de assets
+3. Configurar variantes de build para diferentes ambientes 

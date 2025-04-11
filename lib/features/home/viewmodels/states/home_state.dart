@@ -1,4 +1,7 @@
+// Package imports:
 import 'package:freezed_annotation/freezed_annotation.dart';
+
+// Project imports:
 import 'package:ray_club_app/features/home/models/home_model.dart';
 
 part 'home_state.freezed.dart';
@@ -35,6 +38,15 @@ class HomeState with _$HomeState {
   /// Cria uma instância de estado carregado com sucesso
   factory HomeState.loaded(HomeData data) => HomeState(
     data: data,
+    isLoading: false,
+    isInitialized: true,
+  );
+  
+  /// Cria uma instância de estado com dados parciais e erro
+  /// Útil quando parte dos dados foi carregada mas houve erro em algum componente
+  factory HomeState.partial(HomeData partialData, {required String errorMessage}) => HomeState(
+    data: partialData,
+    error: errorMessage,
     isLoading: false,
     isInitialized: true,
   );

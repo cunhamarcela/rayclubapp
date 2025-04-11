@@ -1,14 +1,18 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ray_club_app/features/workout/screens/workout_list_screen.dart';
-import 'package:ray_club_app/features/workout/viewmodels/workout_view_model.dart';
-import 'package:ray_club_app/models/workout.dart';
 import 'package:mocktail/mocktail.dart';
 
-class MockWorkoutViewModel extends Mock implements WorkoutViewModel {}
+// Project imports:
+import 'package:ray_club_app/features/workout/models/workout_model.dart';
+import 'package:ray_club_app/features/workout/screens/workout_list_screen.dart';
+import 'package:ray_club_app/features/workout/viewmodels/states/workout_state.dart';
+import 'package:ray_club_app/features/workout/viewmodels/workout_view_model.dart';
 
-class MockWorkoutState extends Mock implements WorkoutState {}
+class MockWorkoutViewModel extends Mock implements WorkoutViewModel {}
 
 void main() {
   late MockWorkoutViewModel mockViewModel;
@@ -36,11 +40,11 @@ void main() {
     );
     
     // Create a list of workouts for the state
-    workoutState = WorkoutState(
+    workoutState = WorkoutState.loaded(
       workouts: [sampleWorkout],
       filteredWorkouts: [sampleWorkout],
-      isLoading: false,
-      errorMessage: null,
+      categories: ['Yoga'],
+      filter: const WorkoutFilter(),
     );
   });
 
@@ -48,7 +52,7 @@ void main() {
     // Override the provider for testing
     final container = ProviderContainer(
       overrides: [
-        workoutViewModelProvider.overrideWithValue(mockViewModel),
+        workoutViewModelProvider.overrideWith((_) => mockViewModel),
       ],
     );
     
@@ -85,11 +89,11 @@ void main() {
 
   testWidgets('shows loading indicator when data is loading', (WidgetTester tester) async {
     // Override the provider for testing with loading state
-    final loadingState = WorkoutState(isLoading: true);
+    final loadingState = WorkoutState.loading();
     
     final container = ProviderContainer(
       overrides: [
-        workoutViewModelProvider.overrideWithValue(mockViewModel),
+        workoutViewModelProvider.overrideWith((_) => mockViewModel),
       ],
     );
     
@@ -114,14 +118,11 @@ void main() {
 
   testWidgets('shows error message when error occurs', (WidgetTester tester) async {
     // Override the provider for testing with error state
-    final errorState = WorkoutState(
-      isLoading: false,
-      errorMessage: 'Failed to load workouts',
-    );
+    final errorState = WorkoutState.error('Failed to load workouts');
     
     final container = ProviderContainer(
       overrides: [
-        workoutViewModelProvider.overrideWithValue(mockViewModel),
+        workoutViewModelProvider.overrideWith((_) => mockViewModel),
       ],
     );
     

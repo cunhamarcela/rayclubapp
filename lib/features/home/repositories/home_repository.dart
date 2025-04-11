@@ -1,8 +1,13 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:ray_club_app/core/errors/app_exception.dart';
-import 'package:ray_club_app/features/home/models/home_model.dart';
+
+// Package imports:
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+// Project imports:
+import 'package:ray_club_app/core/errors/app_exception.dart';
 import 'package:ray_club_app/core/services/cache_service.dart';
+import 'package:ray_club_app/features/home/models/home_model.dart';
 
 /// Interface para o repositório de dados da Home
 abstract class HomeRepository {
@@ -89,7 +94,7 @@ class MockHomeRepository implements HomeRepository {
         id: '3',
         title: 'Desafio do Mês',
         subtitle: 'Participe e concorra a prêmios',
-        imageUrl: 'assets/images/banner_bemvindo.jpg',
+        imageUrl: 'assets/images/banner_bemvindo.png',
       ),
     ];
   }
@@ -188,10 +193,13 @@ class SupabaseHomeRepository implements HomeRepository {
   @override
   Future<HomeData> getHomeData() async {
     try {
+      print('🔍 SupabaseHomeRepository: Iniciando busca de dados');
+
       // Verificar se há dados em cache
       final cachedData = await _cacheService.get(_cacheKeyHomeData);
       if (cachedData != null) {
         try {
+          print('🔍 Dados encontrados em cache, verificando validade');
           // Tentar construir o objeto HomeData com os dados em cache
           final cachedHomeData = HomeData.fromJson(cachedData);
           
@@ -200,29 +208,55 @@ class SupabaseHomeRepository implements HomeRepository {
           final dataAge = now.difference(cachedHomeData.lastUpdated);
           
           if (dataAge < _defaultCacheExpiry) {
+            print('✅ Usando dados de cache válidos (idade: ${dataAge.inMinutes} minutos)');
             return cachedHomeData;
+          } else {
+            print('🔍 Cache expirado (${dataAge.inMinutes} minutos), buscando dados atualizados');
           }
           
           // Se os dados são antigos, continuar com a busca remota,
           // mas manter o cache como fallback
         } catch (e) {
+          print('⚠️ Erro ao decodificar cache: $e');
           // Se houver erro ao decodificar o cache, ignorar e buscar dados remotos
         }
+      } else {
+        print('🔍 Cache não encontrado, buscando dados remotos');
+      }
+      
+      print('🔍 Verificando conexão com Supabase...');
+      // Verificar se a conexão com Supabase está funcionando
+      try {
+        final session = _supabaseClient.auth.currentSession;
+        print('✅ Sessão Supabase: ${session != null ? 'Ativa' : 'Inativa'}');
+      } catch (e) {
+        print('⚠️ Erro ao verificar sessão Supabase: $e');
       }
       
       // Executar todas as requisições em paralelo para otimizar o tempo de carregamento
+      print('🔍 Iniciando requisições paralelas');
       final results = await Future.wait([
         getBanners(),
         getUserProgress(),
         getWorkoutCategories(),
         getPopularWorkouts(),
-      ]);
+      ]).timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          print('⚠️ Timeout nas requisições paralelas');
+          throw AppException(
+            message: 'Tempo limite excedido ao carregar dados',
+          );
+        },
+      );
       
       // Extrair os resultados na ordem das requisições
       final banners = results[0] as List<BannerItem>;
       final progress = results[1] as UserProgress;
       final categories = results[2] as List<WorkoutCategory>;
       final workouts = results[3] as List<PopularWorkout>;
+      
+      print('✅ Todas as requisições completadas com sucesso');
       
       final homeData = HomeData(
         activeBanner: banners.firstWhere(
@@ -244,20 +278,29 @@ class SupabaseHomeRepository implements HomeRepository {
       );
       
       return homeData;
-    } catch (e) {
+    } catch (e, stack) {
+      print('❌ Erro detalhado ao carregar dados da Home: $e');
+      print('❌ Stack trace: $stack');
+      
       // Em caso de erro, tentar usar o cache, mesmo se estiver expirado
+      print('🔍 Tentando usar cache como fallback após erro');
       final cachedData = await _cacheService.get(_cacheKeyHomeData);
       if (cachedData != null) {
         try {
+          print('✅ Retornando dados de cache como fallback');
           return HomeData.fromJson(cachedData);
         } catch (_) {
+          print('❌ Erro ao decodificar cache como fallback');
           // Ignorar erros ao decodificar cache
         }
+      } else {
+        print('⚠️ Nenhum cache disponível como fallback');
       }
       
       throw AppException(
         message: 'Erro ao carregar dados da Home',
         originalError: e,
+        stackTrace: stack,
       );
     }
   }
@@ -280,8 +323,13 @@ class SupabaseHomeRepository implements HomeRepository {
       // Buscar dados remotos
       final userId = _supabaseClient.auth.currentUser?.id;
       if (userId == null) {
-        throw AppException(
-          message: 'Usuário não autenticado',
+        print('⚠️ Usuário não autenticado, retornando dados mockados para UserProgress');
+        // Retornar dados padrão para usuários não autenticados em vez de lançar exceção
+        return const UserProgress(
+          daysTrainedThisMonth: 0,
+          currentStreak: 0,
+          bestStreak: 0,
+          challengeProgress: 0,
         );
       }
       
@@ -344,22 +392,31 @@ class SupabaseHomeRepository implements HomeRepository {
           final cachedBanners = (cachedData as List)
             .map((item) => BannerItem.fromJson(item))
             .toList();
+          
+          print('✅ Usando banners do cache: ${cachedBanners.length} itens');
           return cachedBanners;
         } catch (e) {
+          print('⚠️ Erro ao decodificar cache de banners: $e');
           // Se houver erro ao decodificar o cache, ignorar
         }
+      } else {
+        print('🔍 Cache de banners não encontrado');
       }
       
       // Buscar dados remotos
+      print('🔍 Buscando banners do Supabase...');
       final response = await _supabaseClient
         .from('banners')
         .select()
         .order('created_at', ascending: false);
       
-      // Se a resposta estiver vazia, retornar lista vazia
+      // Se a resposta estiver vazia, retornar dados mockados em vez de lista vazia
       if (response == null || response.isEmpty) {
-        return [];
+        print('⚠️ Nenhum banner encontrado no Supabase, usando dados padrão');
+        return _getDefaultBanners();
       }
+      
+      print('✅ Banners obtidos do Supabase: ${response.length} itens');
       
       // Converter os dados da resposta para objetos BannerItem
       final banners = response.map<BannerItem>((data) {
@@ -382,6 +439,8 @@ class SupabaseHomeRepository implements HomeRepository {
       
       return banners;
     } catch (e) {
+      print('❌ Erro ao buscar banners do Supabase: $e');
+      
       // Em caso de erro, tentar usar o cache, mesmo se estiver expirado
       final cachedData = await _cacheService.get(_cacheKeyBanners);
       if (cachedData != null) {
@@ -389,18 +448,44 @@ class SupabaseHomeRepository implements HomeRepository {
           final cachedBanners = (cachedData as List)
             .map((item) => BannerItem.fromJson(item))
             .toList();
+          
+          print('🔄 Usando banners do cache como fallback: ${cachedBanners.length} itens');
           return cachedBanners;
-        } catch (_) {
+        } catch (cacheError) {
+          print('❌ Também falhou ao usar cache: $cacheError');
           // Ignorar erros ao decodificar cache
         }
       }
       
-      // Em caso de erro, logamos e relançamos com mensagem amigável
-      throw AppException(
-        message: 'Erro ao carregar banners',
-        originalError: e,
-      );
+      print('🛟 Usando banners padrão como último recurso');
+      // Usar dados mockados como último recurso
+      return _getDefaultBanners();
     }
+  }
+  
+  // Método auxiliar para criar banners padrão quando tudo falhar
+  List<BannerItem> _getDefaultBanners() {
+    return [
+      const BannerItem(
+        id: 'default-1',
+        title: 'Bem-vindo ao Ray Club',
+        subtitle: 'Sua jornada de bem-estar começa aqui',
+        imageUrl: 'assets/images/banner_bemvindo.png',
+        isActive: true,
+      ),
+      const BannerItem(
+        id: 'default-2',
+        title: 'Descubra Novos Treinos',
+        subtitle: 'Transforme sua rotina com exercícios diversificados',
+        imageUrl: 'assets/images/workout_default.jpg',
+      ),
+      const BannerItem(
+        id: 'default-3',
+        title: 'Desafios Semanais',
+        subtitle: 'Supere seus limites e ganhe recompensas',
+        imageUrl: 'assets/images/challenge_default.jpg',
+      ),
+    ];
   }
   
   @override

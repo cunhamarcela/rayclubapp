@@ -1,22 +1,35 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+// Package imports:
+// import 'package:freezed_annotation/freezed_annotation.dart';
+
+// Project imports:
 import '../models/challenge.dart';
 
-part 'challenge_form_state.freezed.dart';
+// part 'challenge_form_state.freezed.dart';
 
-@freezed
-class ChallengeFormState with _$ChallengeFormState {
-  const factory ChallengeFormState({
-    @Default(false) bool isLoading,
-    @Default(false) bool isSaving,
-    Challenge? challenge,
-    @Default('') String title,
-    @Default('') String description,
-    @Default('') String reward,
-    @Default('') String imageUrl,
-    required DateTime startDate,
-    required DateTime endDate,
-    String? error,
-  }) = _ChallengeFormState;
+class ChallengeFormState {
+  final bool isLoading;
+  final bool isSaving;
+  final Challenge? challenge;
+  final String title;
+  final String description;
+  final String reward;
+  final String imageUrl;
+  final DateTime startDate;
+  final DateTime endDate;
+  final String? error;
+
+  const ChallengeFormState({
+    this.isLoading = false,
+    this.isSaving = false,
+    this.challenge,
+    this.title = '',
+    this.description = '',
+    this.reward = '',
+    this.imageUrl = '',
+    required this.startDate,
+    required this.endDate,
+    this.error,
+  });
   
   factory ChallengeFormState.initial() => ChallengeFormState(
     startDate: DateTime.now(),
@@ -32,4 +45,30 @@ class ChallengeFormState with _$ChallengeFormState {
     startDate: challenge.startDate,
     endDate: challenge.endDate,
   );
+
+  ChallengeFormState copyWith({
+    bool? isLoading,
+    bool? isSaving,
+    Challenge? challenge,
+    String? title,
+    String? description,
+    String? reward,
+    String? imageUrl,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? error,
+  }) {
+    return ChallengeFormState(
+      isLoading: isLoading ?? this.isLoading,
+      isSaving: isSaving ?? this.isSaving,
+      challenge: challenge ?? this.challenge,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      reward: reward ?? this.reward,
+      imageUrl: imageUrl ?? this.imageUrl,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      error: error ?? this.error,
+    );
+  }
 } 

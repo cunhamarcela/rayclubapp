@@ -1,9 +1,15 @@
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+// Project imports:
 import 'package:ray_club_app/services/remote_logging_service.dart';
 import 'package:ray_club_app/services/secure_storage_service.dart';
 import 'package:ray_club_app/services/storage_service.dart';
 import 'package:ray_club_app/services/supabase_storage_service.dart';
+import 'package:ray_club_app/services/deep_link_service.dart';
+import '../services/cache_service.dart';
 
 /// Provider para o serviço de log remoto
 final remoteLoggingServiceProvider = Provider<RemoteLoggingService>((ref) {
@@ -57,4 +63,23 @@ final secureStorageServiceProvider = Provider<SecureStorageService>((ref) {
   });
   
   return service;
+});
+
+/// Provider para o serviço de deep links
+final deepLinkServiceProvider = Provider<DeepLinkService>((ref) {
+  final deepLinkService = DeepLinkService();
+  // Inicializar o serviço
+  deepLinkService.initialize();
+  
+  // Garantir a liberação de recursos ao destruir o provider
+  ref.onDispose(() {
+    deepLinkService.dispose();
+  });
+  
+  return deepLinkService;
+});
+
+/// Provider for SharedPreferences
+final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
+  throw UnimplementedError('This provider should be overridden with an instance in main.dart');
 }); 

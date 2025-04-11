@@ -1,34 +1,21 @@
+// Project imports:
 import 'package:ray_club_app/features/nutrition/models/meal.dart';
 
 /// Interface para operações relacionadas a refeições
-abstract class MealRepository {
-  /// Busca todas as refeições do usuário
-  Future<List<Meal>> getAllMeals();
+abstract class MealRepositoryInterface {
+  /// Busca refeições do usuário com filtros opcionais de data
+  Future<List<Meal>> getMeals({
+    required String userId,
+    DateTime? startDate,
+    DateTime? endDate,
+  });
   
-  /// Busca uma refeição pelo ID
-  Future<Meal?> getMealById(String id);
+  /// Adiciona uma nova refeição
+  Future<Meal> addMeal(Meal meal, String userId);
   
-  /// Busca refeições por período
-  Future<List<Meal>> getMealsByDateRange(DateTime startDate, DateTime endDate);
+  /// Atualiza uma refeição existente
+  Future<Meal> updateMeal(Meal meal);
   
-  /// Busca refeições por tipo
-  Future<List<Meal>> getMealsByType(String type);
-  
-  /// Salva uma refeição (cria ou atualiza)
-  Future<Meal> saveMeal(Meal meal);
-  
-  /// Exclui uma refeição
-  Future<void> deleteMeal(String id);
-  
-  /// Marca uma refeição como favorita
-  Future<void> toggleFavorite(String id, bool isFavorite);
-  
-  /// Adiciona imagem para uma refeição
-  Future<String> uploadMealImage(String mealId, String localImagePath);
-  
-  /// Busca refeições favoritas
-  Future<List<Meal>> getFavoriteMeals();
-  
-  /// Busca estatísticas de nutrição
-  Future<Map<String, dynamic>> getNutritionStats(DateTime startDate, DateTime endDate);
+  /// Exclui uma refeição pelo ID
+  Future<void> deleteMeal(String mealId);
 } 

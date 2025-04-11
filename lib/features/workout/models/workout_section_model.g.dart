@@ -22,8 +22,8 @@ Map<String, dynamic> _$$WorkoutSectionImplToJson(
         _$WorkoutSectionImpl instance) =>
     <String, dynamic>{
       'name': instance.name,
-      'description': instance.description,
+      if (instance.description case final value?) 'description': value,
       'order': instance.order,
-      'exercises': instance.exercises,
+      'exercises': instance.exercises.map((e) => e.toJson()).toList(),
       'estimatedTimeMinutes': instance.estimatedTimeMinutes,
     };

@@ -56,6 +56,12 @@ mixin _$Workout {
   /// Data da última atualização (opcional)
   DateTime? get updatedAt => throw _privateConstructorUsedError;
 
+  /// Mapa de exercícios por seção (para compatibilidade com testes)
+  /// A chave representa o nome da seção (ex: 'warmup', 'main', 'cooldown')
+  /// O valor é uma lista de nomes de exercícios
+  Map<String, List<String>>? get exercises =>
+      throw _privateConstructorUsedError;
+
   /// Serializes this Workout to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -82,7 +88,8 @@ abstract class $WorkoutCopyWith<$Res> {
       List<WorkoutSection> sections,
       String creatorId,
       DateTime createdAt,
-      DateTime? updatedAt});
+      DateTime? updatedAt,
+      Map<String, List<String>>? exercises});
 }
 
 /// @nodoc
@@ -112,6 +119,7 @@ class _$WorkoutCopyWithImpl<$Res, $Val extends Workout>
     Object? creatorId = null,
     Object? createdAt = null,
     Object? updatedAt = freezed,
+    Object? exercises = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -162,6 +170,10 @@ class _$WorkoutCopyWithImpl<$Res, $Val extends Workout>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      exercises: freezed == exercises
+          ? _value.exercises
+          : exercises // ignore: cast_nullable_to_non_nullable
+              as Map<String, List<String>>?,
     ) as $Val);
   }
 }
@@ -185,7 +197,8 @@ abstract class _$$WorkoutImplCopyWith<$Res> implements $WorkoutCopyWith<$Res> {
       List<WorkoutSection> sections,
       String creatorId,
       DateTime createdAt,
-      DateTime? updatedAt});
+      DateTime? updatedAt,
+      Map<String, List<String>>? exercises});
 }
 
 /// @nodoc
@@ -213,6 +226,7 @@ class __$$WorkoutImplCopyWithImpl<$Res>
     Object? creatorId = null,
     Object? createdAt = null,
     Object? updatedAt = freezed,
+    Object? exercises = freezed,
   }) {
     return _then(_$WorkoutImpl(
       id: null == id
@@ -263,6 +277,10 @@ class __$$WorkoutImplCopyWithImpl<$Res>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      exercises: freezed == exercises
+          ? _value._exercises
+          : exercises // ignore: cast_nullable_to_non_nullable
+              as Map<String, List<String>>?,
     ));
   }
 }
@@ -282,9 +300,11 @@ class _$WorkoutImpl implements _Workout {
       final List<WorkoutSection> sections = const [],
       required this.creatorId,
       required this.createdAt,
-      this.updatedAt})
+      this.updatedAt,
+      final Map<String, List<String>>? exercises})
       : _equipment = equipment,
-        _sections = sections;
+        _sections = sections,
+        _exercises = exercises;
 
   factory _$WorkoutImpl.fromJson(Map<String, dynamic> json) =>
       _$$WorkoutImplFromJson(json);
@@ -352,9 +372,26 @@ class _$WorkoutImpl implements _Workout {
   @override
   final DateTime? updatedAt;
 
+  /// Mapa de exercícios por seção (para compatibilidade com testes)
+  /// A chave representa o nome da seção (ex: 'warmup', 'main', 'cooldown')
+  /// O valor é uma lista de nomes de exercícios
+  final Map<String, List<String>>? _exercises;
+
+  /// Mapa de exercícios por seção (para compatibilidade com testes)
+  /// A chave representa o nome da seção (ex: 'warmup', 'main', 'cooldown')
+  /// O valor é uma lista de nomes de exercícios
+  @override
+  Map<String, List<String>>? get exercises {
+    final value = _exercises;
+    if (value == null) return null;
+    if (_exercises is EqualUnmodifiableMapView) return _exercises;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
   @override
   String toString() {
-    return 'Workout(id: $id, title: $title, description: $description, imageUrl: $imageUrl, type: $type, durationMinutes: $durationMinutes, difficulty: $difficulty, equipment: $equipment, sections: $sections, creatorId: $creatorId, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Workout(id: $id, title: $title, description: $description, imageUrl: $imageUrl, type: $type, durationMinutes: $durationMinutes, difficulty: $difficulty, equipment: $equipment, sections: $sections, creatorId: $creatorId, createdAt: $createdAt, updatedAt: $updatedAt, exercises: $exercises)';
   }
 
   @override
@@ -381,7 +418,9 @@ class _$WorkoutImpl implements _Workout {
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
-                other.updatedAt == updatedAt));
+                other.updatedAt == updatedAt) &&
+            const DeepCollectionEquality()
+                .equals(other._exercises, _exercises));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -399,7 +438,8 @@ class _$WorkoutImpl implements _Workout {
       const DeepCollectionEquality().hash(_sections),
       creatorId,
       createdAt,
-      updatedAt);
+      updatedAt,
+      const DeepCollectionEquality().hash(_exercises));
 
   /// Create a copy of Workout
   /// with the given fields replaced by the non-null parameter values.
@@ -430,7 +470,8 @@ abstract class _Workout implements Workout {
       final List<WorkoutSection> sections,
       required final String creatorId,
       required final DateTime createdAt,
-      final DateTime? updatedAt}) = _$WorkoutImpl;
+      final DateTime? updatedAt,
+      final Map<String, List<String>>? exercises}) = _$WorkoutImpl;
 
   factory _Workout.fromJson(Map<String, dynamic> json) = _$WorkoutImpl.fromJson;
 
@@ -481,6 +522,12 @@ abstract class _Workout implements Workout {
   /// Data da última atualização (opcional)
   @override
   DateTime? get updatedAt;
+
+  /// Mapa de exercícios por seção (para compatibilidade com testes)
+  /// A chave representa o nome da seção (ex: 'warmup', 'main', 'cooldown')
+  /// O valor é uma lista de nomes de exercícios
+  @override
+  Map<String, List<String>>? get exercises;
 
   /// Create a copy of Workout
   /// with the given fields replaced by the non-null parameter values.
@@ -1009,6 +1056,9 @@ mixin _$WorkoutFilter {
   /// Duração máxima em minutos (0 = sem filtro)
   int get maxDuration => throw _privateConstructorUsedError;
 
+  /// Duração mínima em minutos (usado para intervalos de duração)
+  int get minDuration => throw _privateConstructorUsedError;
+
   /// Dificuldade selecionada (vazio = todas)
   String get difficulty => throw _privateConstructorUsedError;
 
@@ -1028,7 +1078,8 @@ abstract class $WorkoutFilterCopyWith<$Res> {
           WorkoutFilter value, $Res Function(WorkoutFilter) then) =
       _$WorkoutFilterCopyWithImpl<$Res, WorkoutFilter>;
   @useResult
-  $Res call({String category, int maxDuration, String difficulty});
+  $Res call(
+      {String category, int maxDuration, int minDuration, String difficulty});
 }
 
 /// @nodoc
@@ -1048,6 +1099,7 @@ class _$WorkoutFilterCopyWithImpl<$Res, $Val extends WorkoutFilter>
   $Res call({
     Object? category = null,
     Object? maxDuration = null,
+    Object? minDuration = null,
     Object? difficulty = null,
   }) {
     return _then(_value.copyWith(
@@ -1058,6 +1110,10 @@ class _$WorkoutFilterCopyWithImpl<$Res, $Val extends WorkoutFilter>
       maxDuration: null == maxDuration
           ? _value.maxDuration
           : maxDuration // ignore: cast_nullable_to_non_nullable
+              as int,
+      minDuration: null == minDuration
+          ? _value.minDuration
+          : minDuration // ignore: cast_nullable_to_non_nullable
               as int,
       difficulty: null == difficulty
           ? _value.difficulty
@@ -1075,7 +1131,8 @@ abstract class _$$WorkoutFilterImplCopyWith<$Res>
       __$$WorkoutFilterImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String category, int maxDuration, String difficulty});
+  $Res call(
+      {String category, int maxDuration, int minDuration, String difficulty});
 }
 
 /// @nodoc
@@ -1093,6 +1150,7 @@ class __$$WorkoutFilterImplCopyWithImpl<$Res>
   $Res call({
     Object? category = null,
     Object? maxDuration = null,
+    Object? minDuration = null,
     Object? difficulty = null,
   }) {
     return _then(_$WorkoutFilterImpl(
@@ -1103,6 +1161,10 @@ class __$$WorkoutFilterImplCopyWithImpl<$Res>
       maxDuration: null == maxDuration
           ? _value.maxDuration
           : maxDuration // ignore: cast_nullable_to_non_nullable
+              as int,
+      minDuration: null == minDuration
+          ? _value.minDuration
+          : minDuration // ignore: cast_nullable_to_non_nullable
               as int,
       difficulty: null == difficulty
           ? _value.difficulty
@@ -1116,7 +1178,10 @@ class __$$WorkoutFilterImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$WorkoutFilterImpl implements _WorkoutFilter {
   const _$WorkoutFilterImpl(
-      {this.category = '', this.maxDuration = 0, this.difficulty = ''});
+      {this.category = '',
+      this.maxDuration = 0,
+      this.minDuration = 0,
+      this.difficulty = ''});
 
   factory _$WorkoutFilterImpl.fromJson(Map<String, dynamic> json) =>
       _$$WorkoutFilterImplFromJson(json);
@@ -1131,6 +1196,11 @@ class _$WorkoutFilterImpl implements _WorkoutFilter {
   @JsonKey()
   final int maxDuration;
 
+  /// Duração mínima em minutos (usado para intervalos de duração)
+  @override
+  @JsonKey()
+  final int minDuration;
+
   /// Dificuldade selecionada (vazio = todas)
   @override
   @JsonKey()
@@ -1138,7 +1208,7 @@ class _$WorkoutFilterImpl implements _WorkoutFilter {
 
   @override
   String toString() {
-    return 'WorkoutFilter(category: $category, maxDuration: $maxDuration, difficulty: $difficulty)';
+    return 'WorkoutFilter(category: $category, maxDuration: $maxDuration, minDuration: $minDuration, difficulty: $difficulty)';
   }
 
   @override
@@ -1150,6 +1220,8 @@ class _$WorkoutFilterImpl implements _WorkoutFilter {
                 other.category == category) &&
             (identical(other.maxDuration, maxDuration) ||
                 other.maxDuration == maxDuration) &&
+            (identical(other.minDuration, minDuration) ||
+                other.minDuration == minDuration) &&
             (identical(other.difficulty, difficulty) ||
                 other.difficulty == difficulty));
   }
@@ -1157,7 +1229,7 @@ class _$WorkoutFilterImpl implements _WorkoutFilter {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, category, maxDuration, difficulty);
+      Object.hash(runtimeType, category, maxDuration, minDuration, difficulty);
 
   /// Create a copy of WorkoutFilter
   /// with the given fields replaced by the non-null parameter values.
@@ -1179,6 +1251,7 @@ abstract class _WorkoutFilter implements WorkoutFilter {
   const factory _WorkoutFilter(
       {final String category,
       final int maxDuration,
+      final int minDuration,
       final String difficulty}) = _$WorkoutFilterImpl;
 
   factory _WorkoutFilter.fromJson(Map<String, dynamic> json) =
@@ -1191,6 +1264,10 @@ abstract class _WorkoutFilter implements WorkoutFilter {
   /// Duração máxima em minutos (0 = sem filtro)
   @override
   int get maxDuration;
+
+  /// Duração mínima em minutos (usado para intervalos de duração)
+  @override
+  int get minDuration;
 
   /// Dificuldade selecionada (vazio = todas)
   @override

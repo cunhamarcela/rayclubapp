@@ -1,6 +1,11 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// Package imports:
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// Project imports:
 import '../viewmodels/auth_view_model.dart';
 
 @RoutePage()
@@ -81,7 +86,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.router.pop(),
+          onPressed: () => context.router.maybePop(),
         ),
         title: const Text("Recuperar Senha"),
       ),
@@ -248,7 +253,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             
             // Botão de voltar para login
             ElevatedButton(
-              onPressed: () => context.router.pop(),
+              onPressed: () => context.router.maybePop(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: theme.colorScheme.primary,
                 foregroundColor: Colors.white,

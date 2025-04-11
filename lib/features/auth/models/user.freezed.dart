@@ -28,6 +28,7 @@ mixin _$AppUser {
   DateTime? get updatedAt => throw _privateConstructorUsedError;
   bool get isEmailVerified => throw _privateConstructorUsedError;
   Map<String, dynamic>? get metadata => throw _privateConstructorUsedError;
+  bool? get isAdmin => throw _privateConstructorUsedError;
 
   /// Serializes this AppUser to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -51,7 +52,8 @@ abstract class $AppUserCopyWith<$Res> {
       DateTime createdAt,
       DateTime? updatedAt,
       bool isEmailVerified,
-      Map<String, dynamic>? metadata});
+      Map<String, dynamic>? metadata,
+      bool? isAdmin});
 }
 
 /// @nodoc
@@ -77,6 +79,7 @@ class _$AppUserCopyWithImpl<$Res, $Val extends AppUser>
     Object? updatedAt = freezed,
     Object? isEmailVerified = null,
     Object? metadata = freezed,
+    Object? isAdmin = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -111,6 +114,10 @@ class _$AppUserCopyWithImpl<$Res, $Val extends AppUser>
           ? _value.metadata
           : metadata // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
+      isAdmin: freezed == isAdmin
+          ? _value.isAdmin
+          : isAdmin // ignore: cast_nullable_to_non_nullable
+              as bool?,
     ) as $Val);
   }
 }
@@ -130,7 +137,8 @@ abstract class _$$AppUserImplCopyWith<$Res> implements $AppUserCopyWith<$Res> {
       DateTime createdAt,
       DateTime? updatedAt,
       bool isEmailVerified,
-      Map<String, dynamic>? metadata});
+      Map<String, dynamic>? metadata,
+      bool? isAdmin});
 }
 
 /// @nodoc
@@ -154,6 +162,7 @@ class __$$AppUserImplCopyWithImpl<$Res>
     Object? updatedAt = freezed,
     Object? isEmailVerified = null,
     Object? metadata = freezed,
+    Object? isAdmin = freezed,
   }) {
     return _then(_$AppUserImpl(
       id: null == id
@@ -188,6 +197,10 @@ class __$$AppUserImplCopyWithImpl<$Res>
           ? _value._metadata
           : metadata // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
+      isAdmin: freezed == isAdmin
+          ? _value.isAdmin
+          : isAdmin // ignore: cast_nullable_to_non_nullable
+              as bool?,
     ));
   }
 }
@@ -203,7 +216,8 @@ class _$AppUserImpl implements _AppUser {
       required this.createdAt,
       this.updatedAt,
       required this.isEmailVerified,
-      final Map<String, dynamic>? metadata})
+      final Map<String, dynamic>? metadata,
+      this.isAdmin = false})
       : _metadata = metadata;
 
   factory _$AppUserImpl.fromJson(Map<String, dynamic> json) =>
@@ -234,8 +248,12 @@ class _$AppUserImpl implements _AppUser {
   }
 
   @override
+  @JsonKey()
+  final bool? isAdmin;
+
+  @override
   String toString() {
-    return 'AppUser(id: $id, email: $email, name: $name, photoUrl: $photoUrl, createdAt: $createdAt, updatedAt: $updatedAt, isEmailVerified: $isEmailVerified, metadata: $metadata)';
+    return 'AppUser(id: $id, email: $email, name: $name, photoUrl: $photoUrl, createdAt: $createdAt, updatedAt: $updatedAt, isEmailVerified: $isEmailVerified, metadata: $metadata, isAdmin: $isAdmin)';
   }
 
   @override
@@ -254,7 +272,8 @@ class _$AppUserImpl implements _AppUser {
                 other.updatedAt == updatedAt) &&
             (identical(other.isEmailVerified, isEmailVerified) ||
                 other.isEmailVerified == isEmailVerified) &&
-            const DeepCollectionEquality().equals(other._metadata, _metadata));
+            const DeepCollectionEquality().equals(other._metadata, _metadata) &&
+            (identical(other.isAdmin, isAdmin) || other.isAdmin == isAdmin));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -268,7 +287,8 @@ class _$AppUserImpl implements _AppUser {
       createdAt,
       updatedAt,
       isEmailVerified,
-      const DeepCollectionEquality().hash(_metadata));
+      const DeepCollectionEquality().hash(_metadata),
+      isAdmin);
 
   /// Create a copy of AppUser
   /// with the given fields replaced by the non-null parameter values.
@@ -295,7 +315,8 @@ abstract class _AppUser implements AppUser {
       required final DateTime createdAt,
       final DateTime? updatedAt,
       required final bool isEmailVerified,
-      final Map<String, dynamic>? metadata}) = _$AppUserImpl;
+      final Map<String, dynamic>? metadata,
+      final bool? isAdmin}) = _$AppUserImpl;
 
   factory _AppUser.fromJson(Map<String, dynamic> json) = _$AppUserImpl.fromJson;
 
@@ -315,6 +336,8 @@ abstract class _AppUser implements AppUser {
   bool get isEmailVerified;
   @override
   Map<String, dynamic>? get metadata;
+  @override
+  bool? get isAdmin;
 
   /// Create a copy of AppUser
   /// with the given fields replaced by the non-null parameter values.

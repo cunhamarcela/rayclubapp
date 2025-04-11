@@ -1,22 +1,31 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
-import 'package:shared_preferences/shared_preferences.dart';
+// Package imports:
 import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
+
+// Project imports:
 import '../../features/auth/repositories/auth_repository.dart';
-import '../../features/profile/repositories/profile_repository.dart';
 import '../../features/challenges/repositories/challenge_repository.dart';
-import '../../services/storage_service.dart';
+import '../../features/nutrition/repositories/meal_repository.dart';
+import '../../features/nutrition/repositories/meal_repository_interface.dart';
+import '../../features/profile/repositories/profile_repository.dart';
 import '../../services/analytics_service.dart';
-import '../../services/supabase_service.dart';
+import '../../services/api_service.dart';
 import '../../services/http_service.dart';
 import '../../services/notification_service.dart';
+import '../../services/storage_service.dart';
+import '../../services/supabase_service.dart';
 import '../config/app_config.dart';
-import '../../services/api_service.dart';
 import './service_providers.dart' as service_providers;
+
+// Exportar os novos providers
+export './shared_state_provider.dart';
+export '../events/app_event_bus.dart';
 
 // Core Providers
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
-  throw UnimplementedError('SharedPreferences must be initialized');
+  throw UnimplementedError('SharedPreferences deve ser inicializado antes do uso');
 });
 
 // Supabase Client Provider
@@ -39,15 +48,15 @@ final authRepositoryProvider = Provider<IAuthRepository>((ref) {
   return AuthRepository(supabaseClient);
 });
 
-// Utilizando a implementação mock para desenvolvimento
-final userRepositoryProvider = Provider<MockProfileRepository>((ref) {
-  return MockProfileRepository();
+// MealRepository Provider
+final mealRepositoryProvider = Provider<MealRepositoryInterface>((ref) {
+  final supabaseClient = ref.watch(supabaseClientProvider);
+  return MealRepository(supabaseClient);
 });
 
 // Utilizando a implementação mock para desenvolvimento
-final challengeRepositoryProvider = Provider<MockChallengeRepository>((ref) {
-  final supabaseClient = ref.watch(supabaseClientProvider);
-  return MockChallengeRepository(supabaseClient);
+final userRepositoryProvider = Provider<MockProfileRepository>((ref) {
+  return MockProfileRepository();
 });
 
 // Service Providers

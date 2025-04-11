@@ -1,7 +1,12 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
+
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+
+// Project imports:
 import 'package:ray_club_app/core/widgets/auth_gate.dart';
 import 'package:ray_club_app/features/auth/models/auth_state.dart';
 import 'package:ray_club_app/features/auth/viewmodels/auth_view_model.dart';

@@ -1,4 +1,8 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+// Project imports:
 import 'package:ray_club_app/core/errors/app_exception.dart';
 
 /// Utilitário para validação e sanitização de inputs
@@ -205,10 +209,15 @@ class InputValidator {
     if (text == null) return '';
     
     // Remove tags HTML e JavaScript
-    return text
+    var sanitized = text
       .replaceAll(RegExp(r'<[^>]*>'), '')
-      .replaceAll(RegExp(r'javascript:'), '')
-      .replaceAll(RegExp(r'on\w+\s*='), '');
+      .replaceAll(RegExp(r'javascript:'), '');
+    
+    // Remove eventos JavaScript (como onclick, onmouseover, etc.)
+    sanitized = sanitized.replaceAll(RegExp(r'on\w+\s*=\s*"[^"]*"'), '');
+    sanitized = sanitized.replaceAll(RegExp(r"on\w+\s*=\s*'[^']*'"), '');
+    
+    return sanitized;
   }
   
   /// Sanitiza texto para uso em consultas SQL

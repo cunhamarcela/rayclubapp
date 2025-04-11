@@ -1,9 +1,12 @@
+// Package imports:
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
-import 'package:google_sign_in/google_sign_in.dart';
+
+// Project imports:
 import '../core/di/base_service.dart';
-import '../models/user.dart';
 import '../core/errors/app_exception.dart';
+import '../models/user.dart';
 
 class AuthService implements BaseService {
   final supabase.SupabaseClient _supabaseClient;
@@ -36,14 +39,14 @@ class AuthService implements BaseService {
         password: password,
       );
 
-      if (response.user != null) {
+      if (response.user != null && response.session != null) {
         final user = await _syncUserProfile(response.user!);
         await _saveSession(response.session!);
         return user;
       }
       return null;
     } catch (e) {
-      throw AuthException(
+      throw AppAuthException(
         message: _getErrorMessage(e),
         originalError: e,
       );
@@ -56,20 +59,27 @@ class AuthService implements BaseService {
       if (googleUser == null) return null;
 
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final idToken = googleAuth.idToken;
+      if (idToken == null) {
+        throw AppAuthException(
+          message: 'Não foi possível obter o token de autenticação do Google',
+        );
+      }
+      
       final response = await _supabaseClient.auth.signInWithIdToken(
-        provider: supabase.Provider.google,
-        idToken: googleAuth.idToken!,
+        provider: supabase.OAuthProvider.google,
+        idToken: idToken,
         accessToken: googleAuth.accessToken,
       );
 
-      if (response.user != null) {
+      if (response.user != null && response.session != null) {
         final user = await _syncUserProfile(response.user!);
         await _saveSession(response.session!);
         return user;
       }
       return null;
     } catch (e) {
-      throw AuthException(
+      throw AppAuthException(
         message: _getErrorMessage(e),
         originalError: e,
       );
@@ -98,12 +108,16 @@ class AuthService implements BaseService {
         );
 
         await _supabaseClient.from('users').insert(user.toJson());
-        await _saveSession(response.session!);
+        
+        if (response.session != null) {
+          await _saveSession(response.session!);
+        }
+        
         return user;
       }
       return null;
     } catch (e) {
-      throw AuthException(
+      throw AppAuthException(
         message: _getErrorMessage(e),
         originalError: e,
       );
@@ -118,7 +132,7 @@ class AuthService implements BaseService {
         _prefs.clear(),
       ]);
     } catch (e) {
-      throw AuthException(
+      throw AppAuthException(
         message: 'Erro ao fazer logout',
         originalError: e,
       );
@@ -129,7 +143,7 @@ class AuthService implements BaseService {
     try {
       await _supabaseClient.auth.resetPasswordForEmail(email);
     } catch (e) {
-      throw AuthException(
+      throw AppAuthException(
         message: 'Erro ao solicitar redefinição de senha',
         originalError: e,
       );
@@ -139,6 +153,21 @@ class AuthService implements BaseService {
   Future<bool> isAuthenticated() async {
     final session = _supabaseClient.auth.currentSession;
     return session != null && !session.isExpired;
+  }
+
+  /// Obtém o usuário atual autenticado
+  Future<AppUser?> getCurrentUser() async {
+    try {
+      final user = _supabaseClient.auth.currentUser;
+      if (user == null) return null;
+      
+      return _syncUserProfile(user);
+    } catch (e) {
+      throw AppAuthException(
+        message: 'Erro ao obter usuário atual',
+        originalError: e,
+      );
+    }
   }
 
   Future<void> _saveSession(supabase.Session session) async {
@@ -155,9 +184,16 @@ class AuthService implements BaseService {
           .single();
 
       if (userData == null) {
+        final email = user.email;
+        if (email == null) {
+          throw AppAuthException(
+            message: 'Email do usuário não disponível',
+          );
+        }
+        
         final newUser = AppUser(
           id: user.id,
-          email: user.email!,
+          email: email,
           name: user.userMetadata?['name'] ?? user.userMetadata?['full_name'],
           avatarUrl: user.userMetadata?['avatar_url'],
           createdAt: DateTime.now(),
@@ -170,7 +206,7 @@ class AuthService implements BaseService {
 
       return AppUser.fromJson(userData);
     } catch (e) {
-      throw AuthException(
+      throw AppAuthException(
         message: 'Erro ao sincronizar perfil',
         originalError: e,
       );

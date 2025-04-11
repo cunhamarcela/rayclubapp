@@ -1,8 +1,15 @@
+// Dart imports:
 import 'dart:io';
+
+// Flutter imports:
 import 'package:flutter/foundation.dart';
+
+// Package imports:
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:path/path.dart' as path;
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+// Project imports:
 import 'package:ray_club_app/core/errors/app_exception.dart' as app;
 import 'package:ray_club_app/services/storage_service.dart';
 import 'package:ray_club_app/utils/log_utils.dart';

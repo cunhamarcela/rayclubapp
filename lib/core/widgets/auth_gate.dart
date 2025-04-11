@@ -1,7 +1,12 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ray_club_app/features/auth/viewmodels/auth_view_model.dart';
+
+// Project imports:
 import 'package:ray_club_app/features/auth/models/auth_state.dart';
+import 'package:ray_club_app/features/auth/viewmodels/auth_view_model.dart';
 
 /// AuthGate é responsável por verificar o estado de autenticação do usuário
 /// e redirecioná-lo para a tela apropriada (home ou login)

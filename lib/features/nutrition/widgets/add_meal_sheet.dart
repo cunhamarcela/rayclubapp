@@ -1,8 +1,13 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
+
+// Project imports:
 import 'package:ray_club_app/core/constants/app_colors.dart';
 import 'package:ray_club_app/features/nutrition/models/meal.dart';
-import 'package:uuid/uuid.dart';
-import 'package:intl/intl.dart';
 
 /// Bottom sheet para adicionar ou editar uma refeição
 class AddMealSheet extends StatefulWidget {

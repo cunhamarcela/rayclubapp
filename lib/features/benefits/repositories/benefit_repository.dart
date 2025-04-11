@@ -1,3 +1,4 @@
+// Project imports:
 import '../models/benefit.dart';
 import '../models/redeemed_benefit.dart';
 
@@ -27,6 +28,9 @@ abstract class BenefitRepository {
   /// Cancela um benefício resgatado
   Future<void> cancelRedeemedBenefit(String redeemedBenefitId);
   
+  /// Atualiza o status de um benefício resgatado
+  Future<RedeemedBenefit?> updateBenefitStatus(String redeemedBenefitId, RedemptionStatus newStatus);
+  
   /// Obtém as categorias de benefícios disponíveis
   Future<List<String>> getBenefitCategories();
   
@@ -35,4 +39,18 @@ abstract class BenefitRepository {
   
   /// Obtém benefícios em destaque
   Future<List<Benefit>> getFeaturedBenefits();
+  
+  // MÉTODOS DE ADMINISTRAÇÃO
+  
+  /// Verifica se o usuário atual tem permissões de administrador
+  Future<bool> isAdmin();
+  
+  /// Atualiza a data de expiração de um benefício (somente admin)
+  Future<Benefit?> updateBenefitExpiration(String benefitId, DateTime? newExpirationDate);
+  
+  /// Atualiza a data de expiração de um benefício resgatado (somente admin)
+  Future<RedeemedBenefit?> extendRedeemedBenefitExpiration(String redeemedBenefitId, DateTime? newExpirationDate);
+  
+  /// Obtém todos os benefícios resgatados (para todos os usuários) (somente admin)
+  Future<List<RedeemedBenefit>> getAllRedeemedBenefits();
 } 

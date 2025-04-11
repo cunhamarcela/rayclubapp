@@ -1,17 +1,26 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ray_club_app/core/constants/app_colors.dart';
-import 'package:ray_club_app/core/router/app_router.dart';
-import 'package:ray_club_app/features/benefits/viewmodels/benefits_view_model.dart';
-import 'package:ray_club_app/features/benefits/widgets/benefit_card.dart';
-import 'package:ray_club_app/features/benefits/widgets/partners_grid.dart';
-import 'package:ray_club_app/features/benefits/widgets/qr_code_widget.dart';
-import 'package:ray_club_app/models/benefit.dart';
-import 'package:ray_club_app/shared/bottom_navigation_bar.dart';
-import 'package:ray_club_app/views/widgets/error_widget.dart';
-import 'package:ray_club_app/views/widgets/loading_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:ray_club_app/features/home/widgets/register_exercise_sheet.dart';
+import 'package:flutter/rendering.dart';
+
+// Project imports:
+import '../../../core/theme/app_colors.dart';
+import '../../../shared/bottom_navigation_bar.dart';
+import '../../../core/widgets/app_error_widget.dart';
+import '../../../core/widgets/app_loading.dart';
+import '../enums/benefit_type.dart';
+import '../models/benefit.dart';
+import '../viewmodels/benefit_view_model.dart';
+import '../viewmodels/benefits_view_model.dart';
+import '../widgets/benefit_card.dart';
+import '../widgets/partners_grid.dart';
+import '../widgets/qr_code_widget.dart';
+import '../../../features/home/widgets/register_exercise_sheet.dart';
+import 'package:flutter/services.dart';
 
 /// The Benefits Screen that displays coupons and QR codes
 class BenefitsScreen extends ConsumerStatefulWidget {
@@ -21,7 +30,7 @@ class BenefitsScreen extends ConsumerStatefulWidget {
   ConsumerState<BenefitsScreen> createState() => _BenefitsScreenState();
 }
 
-class _BenefitsScreenState extends ConsumerState<BenefitsScreen> with SingleTickerProviderStateMixin {
+class _BenefitsScreenState extends ConsumerState<BenefitsScreen> with TickerProviderStateMixin {
   late TabController _tabController;
   String? _selectedPartner;
   
@@ -60,7 +69,7 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> with SingleTick
     final benefitsState = ref.watch(benefitsViewModelProvider);
     
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
         title: const Text(
           'Benefícios',
@@ -71,6 +80,32 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> with SingleTick
         ),
         backgroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          // Botão de administração
+          IconButton(
+            icon: const Icon(Icons.admin_panel_settings, color: AppColors.textDark),
+            tooltip: 'Administração',
+            onPressed: () async {
+              // Verificar se é admin antes de navegar
+              final isAdmin = await ref.read(benefitViewModelProvider.notifier).isAdmin();
+              
+              if (isAdmin) {
+                if (mounted) {
+                  Navigator.pushNamed(context, '/admin/benefits');
+                }
+              } else {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Você não tem permissão para acessar esta área'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Container(
@@ -98,9 +133,12 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> with SingleTick
         ),
       ),
       body: benefitsState.isLoading
-          ? const LoadingWidget()
+          ? const AppLoading()
           : benefitsState.errorMessage != null
-              ? CustomErrorWidget(message: benefitsState.errorMessage!)
+              ? AppErrorWidget(
+                  message: benefitsState.errorMessage!,
+                  onRetry: () => ref.read(benefitsViewModelProvider.notifier).loadBenefits(),
+                )
               : TabBarView(
                   controller: _tabController,
                   children: [
@@ -108,14 +146,7 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> with SingleTick
                     _buildQRCodesTab(benefitsState),
                   ],
                 ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showRegisterExerciseSheet(context);
-        },
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-      bottomNavigationBar: _buildBottomNavigationBar(context),
+      bottomNavigationBar: const SharedBottomNavigationBar(currentIndex: 3),
     );
   }
 
@@ -268,10 +299,6 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> with SingleTick
     );
   }
 
-  Widget _buildBottomNavigationBar(BuildContext context) {
-    return SharedBottomNavigationBar(currentIndex: 3);
-  }
-
   void _showCouponDetails(Benefit benefit) {
     showModalBottomSheet(
       context: context,
@@ -385,7 +412,18 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> with SingleTick
               ),
               child: ElevatedButton(
                 onPressed: () {
-                  // TODO: Implement coupon copy functionality
+                  // Implementa a funcionalidade de copiar o cupom para a área de transferência
+                  if (benefit.couponCode != null && benefit.couponCode!.isNotEmpty) {
+                    Clipboard.setData(ClipboardData(text: benefit.couponCode!))
+                        .then((_) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Cupom copiado para a área de transferência'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    });
+                  }
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(

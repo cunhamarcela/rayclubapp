@@ -1,10 +1,17 @@
+// Dart imports:
 import 'dart:io';
-import 'package:dio/dio.dart';
+
+// Flutter imports:
 import 'package:flutter/foundation.dart';
+
+// Package imports:
+import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:retry/retry.dart';
-import '../core/errors/app_exception.dart';
+
+// Project imports:
 import '../core/di/base_service.dart';
+import '../core/errors/app_exception.dart';
 
 /// Serviço HTTP para gerenciar todas as requisições de rede usando Dio
 class HttpService implements BaseService {
@@ -50,12 +57,13 @@ class HttpService implements BaseService {
           return handler.next(options);
         },
         onResponse: (response, handler) {
-          if (response.statusCode! >= 400) {
+          final statusCode = response.statusCode;
+          if (statusCode != null && statusCode >= 400) {
             return handler.reject(
               DioException(
                 requestOptions: response.requestOptions,
                 response: response,
-                error: 'Erro na requisição: ${response.statusCode}',
+                error: 'Erro na requisição: $statusCode',
               ),
             );
           }
@@ -243,18 +251,18 @@ class HttpService implements BaseService {
     int statusCode = 0;
 
     if (error.response != null) {
-      statusCode = error.response!.statusCode ?? 0;
+      statusCode = error.response?.statusCode ?? 0;
       
       // Tenta extrair mensagem de erro da resposta
       try {
-        final data = error.response!.data;
+        final data = error.response?.data;
         if (data is Map && data.containsKey('message')) {
-          errorMessage = data['message'];
+          errorMessage = data['message'] as String? ?? errorMessage;
         } else if (data is Map && data.containsKey('error')) {
-          errorMessage = data['error'];
+          errorMessage = data['error'] as String? ?? errorMessage;
         }
       } catch (_) {
-        errorMessage = 'Erro ${error.response!.statusCode}';
+        errorMessage = 'Erro ${error.response?.statusCode ?? "desconhecido"}';
       }
     } else {
       // Erros de conexão ou timeout

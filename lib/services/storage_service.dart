@@ -1,17 +1,24 @@
+// Dart imports:
 import 'dart:io';
 import 'dart:typed_data';
+
+// Flutter imports:
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+
+// Package imports:
 import 'package:cached_network_image/cached_network_image.dart';
-import '../core/di/base_service.dart';
-import '../core/config/app_config.dart';
-import '../utils/log_utils.dart';
-import 'package:path/path.dart' as path;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as img;
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as path;
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+// Project imports:
 import 'package:ray_club_app/core/errors/app_exception.dart';
+import '../core/config/app_config.dart';
+import '../core/di/base_service.dart';
+import '../utils/log_utils.dart';
 
 /// Tipos de acesso de armazenamento
 enum StorageAccessType {

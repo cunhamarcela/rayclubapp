@@ -1,9 +1,12 @@
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+// Project imports:
 import 'package:ray_club_app/core/errors/app_exception.dart';
 import 'package:ray_club_app/features/workout/models/workout_model.dart';
 import 'package:ray_club_app/features/workout/repositories/workout_repository.dart';
 import 'package:ray_club_app/features/workout/viewmodels/states/workout_state.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Provider para o repositório de treinos
 final workoutRepositoryProvider = Provider<WorkoutRepository>((ref) {
@@ -140,7 +143,7 @@ class WorkoutViewModel extends StateNotifier<WorkoutState> {
                 workouts: workouts,
                 filteredWorkouts: workouts,
                 categories: categories,
-                filter: filter.copyWith(maxDuration: 0),
+                filter: filter.copyWith(maxDuration: 0, minDuration: 0),
               );
             }
             return;
@@ -154,15 +157,39 @@ class WorkoutViewModel extends StateNotifier<WorkoutState> {
                 .toList();
           }
 
+          // Definir intervalos de duração com base no valor selecionado
+          int minDuration = 0;
+          int maxDuration = minutes;
+          
+          // Ajustar para intervalos específicos
+          if (minutes == 15) {
+            minDuration = 0;
+            maxDuration = 15;
+          } else if (minutes == 30) {
+            minDuration = 16;
+            maxDuration = 30;
+          } else if (minutes == 45) {
+            minDuration = 31;
+            maxDuration = 45;
+          } else if (minutes == 60) {
+            minDuration = 46;
+            maxDuration = 60;
+          } else if (minutes == 90) {
+            minDuration = 61;
+            maxDuration = 999; // Sem limite superior prático
+          }
+          
           final durationFiltered = baseWorkouts
-              .where((workout) => workout.durationMinutes <= minutes)
+              .where((workout) => 
+                  workout.durationMinutes >= minDuration && 
+                  workout.durationMinutes <= maxDuration)
               .toList();
 
           state = WorkoutState.loaded(
             workouts: workouts,
             filteredWorkouts: durationFiltered,
             categories: categories,
-            filter: filter.copyWith(maxDuration: minutes),
+            filter: filter.copyWith(maxDuration: maxDuration, minDuration: minDuration),
           );
         } catch (e) {
           state = WorkoutState.error('Erro ao filtrar treinos: ${e.toString()}');
@@ -183,7 +210,7 @@ class WorkoutViewModel extends StateNotifier<WorkoutState> {
                 workouts: workouts,
                 filteredWorkouts: workouts,
                 categories: categories,
-                filter: filter.copyWith(maxDuration: 0),
+                filter: filter.copyWith(maxDuration: 0, minDuration: 0),
               );
             }
             return;
@@ -197,8 +224,32 @@ class WorkoutViewModel extends StateNotifier<WorkoutState> {
                 .toList();
           }
 
+          // Definir intervalos de duração com base no valor selecionado
+          int minDuration = 0;
+          int maxDuration = minutes;
+          
+          // Ajustar para intervalos específicos
+          if (minutes == 15) {
+            minDuration = 0;
+            maxDuration = 15;
+          } else if (minutes == 30) {
+            minDuration = 16;
+            maxDuration = 30;
+          } else if (minutes == 45) {
+            minDuration = 31;
+            maxDuration = 45;
+          } else if (minutes == 60) {
+            minDuration = 46;
+            maxDuration = 60;
+          } else if (minutes == 90) {
+            minDuration = 61;
+            maxDuration = 999; // Sem limite superior prático
+          }
+          
           final durationFiltered = baseWorkouts
-              .where((workout) => workout.durationMinutes <= minutes)
+              .where((workout) => 
+                  workout.durationMinutes >= minDuration && 
+                  workout.durationMinutes <= maxDuration)
               .toList();
 
           state = WorkoutState.selectedWorkout(
@@ -206,7 +257,7 @@ class WorkoutViewModel extends StateNotifier<WorkoutState> {
             workouts: workouts,
             filteredWorkouts: durationFiltered,
             categories: categories,
-            filter: filter.copyWith(maxDuration: minutes),
+            filter: filter.copyWith(maxDuration: maxDuration, minDuration: minDuration),
           );
         } catch (e) {
           state = WorkoutState.error('Erro ao filtrar treinos: ${e.toString()}');
@@ -237,7 +288,9 @@ class WorkoutViewModel extends StateNotifier<WorkoutState> {
               
               if (filter.maxDuration > 0) {
                 filtered = filtered
-                    .where((w) => w.durationMinutes <= filter.maxDuration)
+                    .where((w) => 
+                        w.durationMinutes >= filter.minDuration && 
+                        w.durationMinutes <= filter.maxDuration)
                     .toList();
               }
               
@@ -269,7 +322,9 @@ class WorkoutViewModel extends StateNotifier<WorkoutState> {
           
           if (filter.maxDuration > 0) {
             baseWorkouts = baseWorkouts
-                .where((w) => w.durationMinutes <= filter.maxDuration)
+                .where((w) => 
+                    w.durationMinutes >= filter.minDuration && 
+                    w.durationMinutes <= filter.maxDuration)
                 .toList();
           }
 

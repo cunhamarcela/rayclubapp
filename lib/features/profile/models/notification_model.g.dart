@@ -24,6 +24,6 @@ Map<String, dynamic> _$$AppNotificationImplToJson(
       'user_id': instance.userId,
       'type': instance.type,
       'content': instance.content,
-      'read_at': instance.readAt,
+      if (instance.readAt case final value?) 'read_at': value,
       'created_at': instance.createdAt,
     };

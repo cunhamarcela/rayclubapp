@@ -1,8 +1,13 @@
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+
+// Project imports:
 import 'package:ray_club_app/core/providers/providers.dart';
+import 'package:ray_club_app/features/auth/models/auth_state.dart';
+import 'package:ray_club_app/features/auth/viewmodels/auth_view_model.dart';
 import 'package:ray_club_app/features/nutrition/models/meal.dart';
-import 'package:ray_club_app/features/nutrition/repositories/meal_repository.dart';
+import 'package:ray_club_app/features/nutrition/repositories/meal_repository_interface.dart';
 
 part 'meal_view_model.freezed.dart';
 
@@ -29,10 +34,15 @@ class MealState with _$MealState {
 
 /// ViewModel for managing meal data
 class MealViewModel extends StateNotifier<MealState> {
-  final MealRepository _repository;
-  final dynamic _authState; // Replace with your actual auth state type
+  final MealRepositoryInterface _repository;
+  final AuthState _authState;
   
   MealViewModel(this._repository, this._authState) : super(const MealState()) {
+    initState();
+  }
+  
+  /// Método que pode ser sobrescrito para testes
+  void initState() {
     // Load meals initially if user is authenticated
     _authState.maybeWhen(
       authenticated: (user) => loadMeals(),
@@ -150,5 +160,83 @@ class MealViewModel extends StateNotifier<MealState> {
       authenticated: (user) => user.id,
       orElse: () => null,
     );
+  }
+  
+  /// Calculate total calories from all meals
+  int calculateTotalCalories() {
+    return state.meals.fold<int>(0, (sum, meal) => sum + meal.calories);
+  }
+  
+  /// Calculate total proteins from all meals
+  double calculateTotalProteins() {
+    return state.meals.fold<double>(0, (sum, meal) => sum + meal.proteins);
+  }
+  
+  /// Calculate total carbs from all meals
+  double calculateTotalCarbs() {
+    return state.meals.fold<double>(0, (sum, meal) => sum + meal.carbs);
+  }
+  
+  /// Calculate total fats from all meals
+  double calculateTotalFats() {
+    return state.meals.fold<double>(0, (sum, meal) => sum + meal.fats);
+  }
+  
+  /// Calculate the percentage distribution of macronutrients
+  Map<String, double> calculateMacroDistribution() {
+    final totalProteins = calculateTotalProteins();
+    final totalCarbs = calculateTotalCarbs();
+    final totalFats = calculateTotalFats();
+    
+    final totalGrams = totalProteins + totalCarbs + totalFats;
+    
+    if (totalGrams == 0) {
+      return {
+        'protein': 0,
+        'carbs': 0,
+        'fats': 0,
+      };
+    }
+    
+    return {
+      'protein': (totalProteins / totalGrams) * 100,
+      'carbs': (totalCarbs / totalGrams) * 100,
+      'fats': (totalFats / totalGrams) * 100,
+    };
+  }
+  
+  /// Get weekly nutrition statistics
+  Future<List<Map<String, dynamic>>> getWeeklyStats({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    final weekStats = <Map<String, dynamic>>[];
+    
+    // Calculate days between start and end date
+    final days = endDate.difference(startDate).inDays + 1;
+    final limit = days > 7 ? 7 : days; // Maximum of 7 days
+    
+    for (var i = 0; i < limit; i++) {
+      final currentDate = startDate.add(Duration(days: i));
+      final endOfDay = DateTime(
+        currentDate.year, 
+        currentDate.month, 
+        currentDate.day, 
+        23, 59, 59
+      );
+      
+      // Load meals for this specific day
+      await loadMeals(startDate: currentDate, endDate: endOfDay);
+      
+      weekStats.add({
+        'date': currentDate,
+        'calories': calculateTotalCalories(),
+        'proteins': calculateTotalProteins(),
+        'carbs': calculateTotalCarbs(),
+        'fats': calculateTotalFats(),
+      });
+    }
+    
+    return weekStats;
   }
 } 

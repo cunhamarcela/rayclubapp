@@ -1,9 +1,15 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// Project imports:
 import 'package:ray_club_app/core/providers/providers.dart';
 import 'package:ray_club_app/core/router/app_router.dart';
 import 'package:ray_club_app/core/theme/app_colors.dart';
+import 'package:ray_club_app/features/auth/viewmodels/auth_view_model.dart';
 
 @RoutePage()
 class ResetPasswordScreen extends ConsumerStatefulWidget {

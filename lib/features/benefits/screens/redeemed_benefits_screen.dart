@@ -1,6 +1,11 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+// Project imports:
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/error_view.dart';
@@ -10,6 +15,7 @@ import '../viewmodels/benefit_view_model.dart';
 import '../widgets/redeemed_benefit_card.dart';
 
 /// Tela de listagem de benefícios resgatados pelo usuário
+@RoutePage()
 class RedeemedBenefitsScreen extends ConsumerStatefulWidget {
   /// Construtor
   const RedeemedBenefitsScreen({super.key});

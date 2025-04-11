@@ -1,4 +1,7 @@
+// Flutter imports:
 import 'package:flutter/foundation.dart';
+
+// Package imports:
 import 'package:logger/logger.dart';
 
 /// Utilitário para logging de eventos e erros no aplicativo

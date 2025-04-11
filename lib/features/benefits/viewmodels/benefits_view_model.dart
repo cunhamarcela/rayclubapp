@@ -1,7 +1,11 @@
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:ray_club_app/models/benefit.dart';
-import 'package:ray_club_app/repositories/benefits_repository.dart';
+
+// Project imports:
+import 'package:ray_club_app/features/benefits/models/benefit.dart';
+import 'package:ray_club_app/features/benefits/repositories/benefits_repository.dart';
+import 'package:ray_club_app/features/benefits/enums/benefit_type.dart';
 
 part 'benefits_view_model.freezed.dart';
 

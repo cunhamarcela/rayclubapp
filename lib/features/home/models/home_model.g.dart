@@ -25,11 +25,12 @@ _$HomeDataImpl _$$HomeDataImplFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$$HomeDataImplToJson(_$HomeDataImpl instance) =>
     <String, dynamic>{
-      'activeBanner': instance.activeBanner,
-      'banners': instance.banners,
-      'progress': instance.progress,
-      'categories': instance.categories,
-      'popularWorkouts': instance.popularWorkouts,
+      'activeBanner': instance.activeBanner.toJson(),
+      'banners': instance.banners.map((e) => e.toJson()).toList(),
+      'progress': instance.progress.toJson(),
+      'categories': instance.categories.map((e) => e.toJson()).toList(),
+      'popularWorkouts':
+          instance.popularWorkouts.map((e) => e.toJson()).toList(),
       'lastUpdated': instance.lastUpdated.toIso8601String(),
     };
 
@@ -49,7 +50,7 @@ Map<String, dynamic> _$$BannerItemImplToJson(_$BannerItemImpl instance) =>
       'title': instance.title,
       'subtitle': instance.subtitle,
       'imageUrl': instance.imageUrl,
-      'actionUrl': instance.actionUrl,
+      if (instance.actionUrl case final value?) 'actionUrl': value,
       'isActive': instance.isActive,
     };
 
@@ -87,7 +88,7 @@ Map<String, dynamic> _$$WorkoutCategoryImplToJson(
       'name': instance.name,
       'iconUrl': instance.iconUrl,
       'workoutCount': instance.workoutCount,
-      'colorHex': instance.colorHex,
+      if (instance.colorHex case final value?) 'colorHex': value,
     };
 
 _$PopularWorkoutImpl _$$PopularWorkoutImplFromJson(Map<String, dynamic> json) =>

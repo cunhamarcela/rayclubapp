@@ -1,6 +1,11 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+// Project imports:
 import 'package:ray_club_app/features/home/widgets/register_exercise_sheet.dart';
 
 void main() {

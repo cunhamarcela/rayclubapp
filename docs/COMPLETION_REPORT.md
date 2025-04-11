@@ -14,6 +14,10 @@ O Ray Club App está atualmente com sua estrutura principal concluída, seguindo
 - **Nutrition**: Gerenciamento de refeições e macronutrientes
 - **Profile**: Perfil do usuário com edição de dados e estatísticas
 - **Challenges**: Sistema de desafios com convites, ranking e progresso
+- **Benefits**: Implementada com sistema completo de expiração de cupons
+   - QR codes e cupons promocionais
+   - Sistema de expiração automática
+   - Interface de administração para extensão de validade
 
 ### Features Parcialmente Implementadas
 
@@ -111,3 +115,20 @@ A funcionalidade de Challenges (Desafios) permite que os usuários participem de
 - Resolvidos bugs de tipagem com campos usando underscore
 - Melhorada a consistência visual entre as diferentes telas de desafios
 - Corrigido o problema de exclusão de desafios 
+
+## Próximos Passos
+
+1. **Aumentar cobertura de testes**
+   - Implementar testes para ViewModels restantes
+   - Adicionar testes de widget para componentes principais
+   - Implementar testes de integração para fluxos críticos
+
+2. **Melhorar experiência do usuário**
+   - Implementar suporte a temas dark/light
+   - Melhorar animações e transições
+   - Adicionar suporte a acessibilidade
+
+3. **Preparar para lançamento**
+   - Realizar auditoria de performance
+   - Otimizar tamanho do aplicativo
+   - Configurar variantes de build para diferentes ambientes 

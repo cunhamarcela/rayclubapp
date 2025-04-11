@@ -1,9 +1,24 @@
+// Flutter imports:
 import "package:flutter/foundation.dart";
+import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
+import 'package:path/path.dart' as path;
+import 'package:supabase_flutter/supabase_flutter.dart' hide StorageException, AuthException;
+import 'package:gotrue/src/types/auth_exception.dart' as supabase_auth;
+
+// Project imports:
 import 'package:ray_club_app/core/errors/app_exception.dart';
 import 'package:ray_club_app/core/providers/service_providers.dart';
 import 'package:ray_club_app/services/remote_logging_service.dart';
 import 'package:ray_club_app/utils/log_utils.dart';
+import '../services/connectivity_service.dart';
+import '../providers/auth_provider.dart';
+import '../providers/providers.dart';
+import '../router/app_router.dart';
+import '../localization/app_strings.dart';
 
 /// Utilitário para classificação de erros
 class ErrorClassifier {
@@ -28,7 +43,7 @@ class ErrorClassifier {
     
     // Handle authentication errors
     if (_isAuthError(errorString)) {
-      return AuthException(
+      return AppAuthException(
         message: 'Erro de autenticação. Faça login novamente.',
         originalError: error,
         stackTrace: stackTrace,
@@ -208,50 +223,360 @@ class AppProviderObserver extends ProviderObserver {
 
 /// Global error handler for the app
 class ErrorHandler {
-  static RemoteLoggingService? _remoteLoggingService;
+  final RemoteLoggingService? _remoteLoggingService;
   
-  /// Define o serviço de log remoto
-  static void setRemoteLoggingService(RemoteLoggingService service) {
-    _remoteLoggingService = service;
-  }
+  /// Construtor que injeta o serviço de logging opcional
+  ErrorHandler({RemoteLoggingService? remoteLoggingService}) 
+      : _remoteLoggingService = remoteLoggingService;
   
-  /// Trata qualquer erro na aplicação
-  static void handleError(Object error, [StackTrace? stackTrace]) {
-    stackTrace ??= StackTrace.current;
+  /// Provider para o serviço de tratamento de erros
+  static final provider = Provider<ErrorHandler>((ref) {
+    final loggingService = ref.watch(remoteLoggingServiceProvider);
+    return ErrorHandler(remoteLoggingService: loggingService);
+  });
+  
+  /// Classifica e trata um erro
+  AppException handle(dynamic error, [StackTrace? stackTrace]) {
+    // Converte o erro para AppException
+    final appError = _classifyError(error, stackTrace ?? StackTrace.current);
     
-    // Usar o mesmo classificador de erros para consistência
-    final appError = ErrorClassifier.classifyError(error, stackTrace);
+    // Loga o erro no console
+    _logError(appError);
     
-    // Log error locally
-    LogUtils.error(
-      'App error: ${appError.message}',
-      error: appError,
+    // Envia o erro para o serviço de logging remoto, se disponível
+    _remoteLoggingService?.logError(
+      'Erro tratado pelo ErrorHandler: ${appError.message}',
+      error: appError.originalError ?? appError,
       stackTrace: appError.stackTrace ?? stackTrace,
+      tag: 'ErrorHandler',
+      metadata: {'code': appError.code},
     );
     
-    // Send to remote logging if available
-    if (_remoteLoggingService != null) {
-      _remoteLoggingService!.logError(
-        'App error: ${appError.message}',
-        error: appError,
-        stackTrace: appError.stackTrace ?? stackTrace,
-        tag: 'AppError',
+    return appError;
+  }
+  
+  /// Retorna uma mensagem amigável para o usuário com base no tipo de erro
+  String getUserFriendlyMessage(AppException error) {
+    if (error is NetworkException) {
+      if (error.statusCode == 401 || error.statusCode == 403) {
+        return AppStrings.unauthorizedError;
+      } else if (error.statusCode == 500) {
+        return AppStrings.serverError;
+      } else {
+        return AppStrings.networkError;
+      }
+    } else if (error is AuthException) {
+      return AppStrings.invalidCredentials;
+    } else if (error is ValidationException) {
+      if (error.field != null) {
+        return '${error.field}: ${error.message}';
+      }
+      return error.message;
+    } else if (error is StorageException) {
+      return AppStrings.serverError;
+    } else {
+      return AppStrings.somethingWentWrong;
+    }
+  }
+  
+  /// Verifica se o erro é crítico e requer intervenção imediata
+  static bool isCriticalError(AppException exception) {
+    // Erros que impedem o funcionamento principal do app
+    if (exception is DatabaseException && 
+        (exception.code?.contains('connection') ?? false)) {
+      return true;
+    }
+    
+    // Erros de autenticação que afetam todo o app
+    if (exception is AppAuthException &&
+        (exception.code == 'session_expired' || exception.code == 'not_authenticated')) {
+      return true;
+    }
+    
+    // Erros relacionados a problemas de permissão
+    if (exception.message.toLowerCase().contains('permission denied') ||
+        (exception.code?.toLowerCase().contains('permission') ?? false)) {
+      return true;
+    }
+    
+    return false;
+  }
+  
+  /// Fornece uma ação recomendada para resolver o erro
+  static String? getRecommendedAction(AppException exception) {
+    if (exception is NetworkException) {
+      return 'Verifique sua conexão com a internet e tente novamente.';
+    }
+    
+    if (exception is AppAuthException) {
+      if (exception.code == 'session_expired') {
+        return 'Sua sessão expirou. Faça login novamente.';
+      }
+      return 'Faça login novamente para continuar.';
+    }
+    
+    if (exception is ValidationException) {
+      return 'Verifique os dados informados e tente novamente.';
+    }
+    
+    if (exception is DatabaseException) {
+      return 'Tente novamente mais tarde. Se o problema persistir, contate o suporte.';
+    }
+    
+    if (exception is StorageException) {
+      return 'Verifique o espaço disponível no seu dispositivo.';
+    }
+    
+    // Erro genérico
+    return 'Tente novamente. Se o problema persistir, reinicie o aplicativo.';
+  }
+  
+  /// Tenta recuperar de um erro automaticamente, se possível
+  static Future<bool> attemptRecovery(AppException exception, {required ProviderContainer container}) async {
+    try {
+      if (exception is NetworkException) {
+        // Verificar conectividade antes de tentar recuperar
+        final connectivityService = container.read(connectivityServiceProvider);
+        final hasConnection = await connectivityService.checkConnectionNow();
+        if (!hasConnection) {
+          LogUtils.info('Sem conexão, impossível recuperar automaticamente',
+            tag: 'ErrorRecovery',
+          );
+          return false;
+        }
+      }
+      
+      if (exception is AppAuthException && exception.code == 'session_expired') {
+        // Tentar renovar a sessão
+        final authRepository = container.read(authRepositoryProvider);
+        try {
+          await authRepository.refreshSession();
+          return true;
+        } catch (e) {
+          LogUtils.warning('Falha ao renovar sessão', 
+            tag: 'ErrorRecovery',
+            data: e,
+          );
+          return false;
+        }
+      }
+      
+      return false;
+    } catch (e) {
+      LogUtils.error('Erro durante tentativa de recuperação', 
+        tag: 'ErrorRecovery',
+        error: e,
+      );
+      return false;
+    }
+  }
+  
+  /// Mapeia um status HTTP para um código e mensagem mais amigável
+  static Map<String, String> mapHttpStatusToMessage(int statusCode) {
+    switch (statusCode) {
+      case 400:
+        return {'code': 'bad_request', 'message': 'Requisição inválida.'};
+      case 401:
+        return {'code': 'unauthorized', 'message': 'Não autorizado. Faça login novamente.'};
+      case 403:
+        return {'code': 'forbidden', 'message': 'Acesso negado.'};
+      case 404:
+        return {'code': 'not_found', 'message': 'Recurso não encontrado.'};
+      case 408:
+        return {'code': 'timeout', 'message': 'Tempo de resposta excedido.'};
+      case 409:
+        return {'code': 'conflict', 'message': 'Conflito de dados.'};
+      case 422:
+        return {'code': 'validation_error', 'message': 'Dados inválidos.'};
+      case 429:
+        return {'code': 'too_many_requests', 'message': 'Muitas requisições. Tente mais tarde.'};
+      case 500:
+        return {'code': 'server_error', 'message': 'Erro no servidor.'};
+      case 502:
+        return {'code': 'bad_gateway', 'message': 'Serviço temporariamente indisponível.'};
+      case 503:
+        return {'code': 'service_unavailable', 'message': 'Serviço indisponível.'};
+      case 504:
+        return {'code': 'gateway_timeout', 'message': 'Tempo de resposta do servidor excedido.'};
+      default:
+        return {
+          'code': 'http_error_$statusCode',
+          'message': 'Erro de comunicação (código $statusCode).'
+        };
+    }
+  }
+  
+  /// Classifica o erro original em um AppException apropriado
+  AppException _classifyError(dynamic error, StackTrace stackTrace) {
+    // Se já for AppException, retorna
+    if (error is AppException) {
+      return error;
+    }
+    
+    // Classificar de acordo com o tipo
+    if (error is DioError) {
+      return _handleDioError(error, stackTrace);
+    } else if (error is PostgrestException) {
+      return _handleSupabaseError(error, stackTrace);
+    } else if (error is supabase_auth.AuthException) {
+      return AuthException(
+        message: error.message,
+        originalError: error,
+        stackTrace: stackTrace,
+      );
+    } else if (error is FormatException) {
+      return ValidationException(
+        message: 'Erro de formato: ${error.message}',
+        originalError: error,
+        stackTrace: stackTrace,
+      );
+    } else if (error is TypeError) {
+      return ValidationException(
+        message: 'Erro de tipo: ${error.toString()}',
+        originalError: error,
+        stackTrace: stackTrace,
+      );
+    } else {
+      // Para erros não reconhecidos
+      final errorMessage = error?.toString() ?? 'Erro desconhecido';
+      return UnexpectedException(
+        message: errorMessage,
+        originalError: error,
+        stackTrace: stackTrace,
       );
     }
   }
   
-  /// Shows a user-friendly error message based on the exception type
-  static String getUserFriendlyMessage(AppException exception) {
-    if (exception is NetworkException) {
-      return 'A conexão falhou. Verifique sua internet e tente novamente.';
-    } else if (exception is AuthException) {
-      return 'Houve um problema com sua autenticação. Por favor, faça login novamente.';
-    } else if (exception is StorageException) {
-      return 'Não foi possível acessar os arquivos necessários. Tente novamente.';
-    } else if (exception is ValidationException) {
-      return 'Os dados informados não são válidos. Por favor, verifique e tente novamente.';
+  /// Trata erros específicos do Dio
+  NetworkException _handleDioError(DioError error, StackTrace stackTrace) {
+    String message = 'Erro de rede';
+    int? statusCode;
+    
+    switch (error.type) {
+      case DioErrorType.connectionTimeout:
+        message = 'Tempo de conexão esgotado';
+        break;
+      case DioErrorType.sendTimeout:
+        message = 'Tempo de envio esgotado';
+        break;
+      case DioErrorType.receiveTimeout:
+        message = 'Tempo de recebimento esgotado';
+        break;
+      case DioErrorType.badResponse:
+        statusCode = error.response?.statusCode;
+        message = _getMessageFromStatusCode(statusCode);
+        break;
+      case DioErrorType.cancel:
+        message = 'Requisição cancelada';
+        break;
+      default:
+        message = 'Erro de rede: ${error.message}';
+        break;
+    }
+    
+    return NetworkException(
+      message: message,
+      statusCode: statusCode,
+      originalError: error,
+      stackTrace: stackTrace,
+    );
+  }
+  
+  /// Trata erros específicos do Supabase
+  AppException _handleSupabaseError(PostgrestException error, StackTrace stackTrace) {
+    // Códigos de erro do PostgreSQL/Supabase
+    if (error.code == 'PGRST301' || error.code == '401') {
+      return AuthException(
+        message: 'Não autorizado: ${error.message}',
+        code: error.code,
+        originalError: error,
+        stackTrace: stackTrace,
+      );
+    } else if (error.code == 'PGRST116' || error.code?.contains('42P01') == true) {
+      return StorageException(
+        message: 'Tabela não existe: ${error.message}',
+        code: error.code,
+        originalError: error,
+        stackTrace: stackTrace,
+      );
+    } else if (error.code?.startsWith('23') == true) {
+      return ValidationException(
+        message: 'Erro de validação: ${error.message}',
+        code: error.code,
+        originalError: error,
+        stackTrace: stackTrace,
+      );
     } else {
-      return 'Ocorreu um erro inesperado. Por favor, tente novamente.';
+      return StorageException(
+        message: 'Erro ao acessar dados: ${error.message}',
+        code: error.code,
+        originalError: error,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+  
+  /// Retorna uma mensagem com base no código de status HTTP
+  String _getMessageFromStatusCode(int? statusCode) {
+    switch (statusCode) {
+      case 400:
+        return 'Requisição inválida';
+      case 401:
+        return 'Não autorizado';
+      case 403:
+        return 'Acesso negado';
+      case 404:
+        return 'Recurso não encontrado';
+      case 500:
+      case 501:
+      case 502:
+      case 503:
+        return 'Erro no servidor';
+      default:
+        return 'Erro de rede (código $statusCode)';
+    }
+  }
+  
+  /// Loga o erro no console
+  void _logError(AppException error) {
+    if (kDebugMode) {
+      print('🔴 [ERROR] ${error.toString()}');
+      if (error.originalError != null) {
+        print('Original error: ${error.originalError}');
+      }
+      if (error.stackTrace != null) {
+        print('Stack trace: ${error.stackTrace}');
+      }
     }
   }
 }
+
+/// Observer de erros para provedores Riverpod
+class ErrorObserver extends ProviderObserver {
+  final ErrorHandler _errorHandler;
+  
+  /// Construtor
+  ErrorObserver(this._errorHandler);
+  
+  @override
+  void providerDidFail(
+    ProviderBase provider,
+    Object error,
+    StackTrace stackTrace,
+    ProviderContainer container,
+  ) {
+    // Trata o erro quando um provider falha
+    final appError = _errorHandler.handle(error, stackTrace);
+    
+    // Log adicional específico para falhas em providers
+    if (kDebugMode) {
+      print('🔴 Provider falhou: ${provider.name ?? provider.runtimeType}');
+      print('Erro tratado: ${appError.message}');
+    }
+  }
+}
+
+/// Provider global para o ErrorHandler
+final errorHandlerProvider = Provider<ErrorHandler>((ref) {
+  return ErrorHandler();
+});

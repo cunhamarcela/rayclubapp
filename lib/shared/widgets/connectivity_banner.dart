@@ -1,15 +1,20 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 /// Widget que exibe um banner informando o status de conectividade
 class ConnectivityBanner extends StatelessWidget {
   final ConnectivityResult? connectivityResult;
   final VoidCallback? onRetry;
+  final VoidCallback? onClose;
   
   const ConnectivityBanner({
     Key? key,
     required this.connectivityResult,
     this.onRetry,
+    this.onClose,
   }) : super(key: key);
   
   @override
@@ -54,6 +59,13 @@ class ConnectivityBanner extends StatelessWidget {
               ),
               child: const Text('Tentar novamente'),
             ),
+          if (onClose != null)
+            IconButton(
+              icon: const Icon(Icons.close, color: Colors.white, size: 16),
+              padding: const EdgeInsets.all(4),
+              constraints: const BoxConstraints(),
+              onPressed: onClose,
+            ),
         ],
       ),
     );
@@ -80,6 +92,7 @@ class ConnectivityBannerWrapper extends StatefulWidget {
 class _ConnectivityBannerWrapperState extends State<ConnectivityBannerWrapper> {
   final Connectivity _connectivity = Connectivity();
   ConnectivityResult? _connectivityResult;
+  bool _bannerDismissed = false;
   
   @override
   void initState() {
@@ -94,30 +107,47 @@ class _ConnectivityBannerWrapperState extends State<ConnectivityBannerWrapper> {
       if (mounted) {
         setState(() {
           _connectivityResult = result;
+          // Resetar o estado de dismissed quando a conectividade muda
+          if (result == ConnectivityResult.wifi || result == ConnectivityResult.mobile) {
+            _bannerDismissed = false;
+          }
         });
-        if (widget.onConnectivityChanged != null) {
-          widget.onConnectivityChanged!();
-        }
+        // Chamar o callback de maneira segura se existir
+        widget.onConnectivityChanged?.call();
       }
     } catch (_) {
       // Em caso de erro, deixar _connectivityResult como null
     }
   }
   
-  void _updateConnectionStatus(ConnectivityResult result) {
+  void _updateConnectionStatus(List<ConnectivityResult> results) {
     if (mounted) {
+      // Considerar o primeiro resultado da lista ou none se a lista estiver vazia
+      final result = results.isNotEmpty ? results.first : ConnectivityResult.none;
+      
       setState(() {
         _connectivityResult = result;
+        // Resetar o estado de dismissed quando a conectividade muda
+        if (result == ConnectivityResult.wifi || result == ConnectivityResult.mobile) {
+          _bannerDismissed = false;
+        }
       });
-      if (widget.onConnectivityChanged != null) {
-        widget.onConnectivityChanged!();
-      }
+      // Chamar o callback de maneira segura se existir
+      widget.onConnectivityChanged?.call();
+    }
+  }
+  
+  void _dismissBanner() {
+    if (mounted) {
+      setState(() {
+        _bannerDismissed = true;
+      });
     }
   }
   
   @override
   Widget build(BuildContext context) {
-    if (!widget.showBanner) {
+    if (!widget.showBanner || _bannerDismissed) {
       return widget.child;
     }
     
@@ -126,6 +156,7 @@ class _ConnectivityBannerWrapperState extends State<ConnectivityBannerWrapper> {
         ConnectivityBanner(
           connectivityResult: _connectivityResult,
           onRetry: _initConnectivity,
+          onClose: _dismissBanner,
         ),
         Expanded(child: widget.child),
       ],

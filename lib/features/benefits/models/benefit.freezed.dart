@@ -30,7 +30,7 @@ mixin _$Benefit {
   String get description => throw _privateConstructorUsedError;
 
   /// URL da imagem que representa o benefício
-  String? get imageUrl => throw _privateConstructorUsedError;
+  String get imageUrl => throw _privateConstructorUsedError;
 
   /// URL do QR Code do benefício (opcional)
   String? get qrCodeUrl => throw _privateConstructorUsedError;
@@ -50,6 +50,27 @@ mixin _$Benefit {
   /// URL de ação associada ao benefício
   String? get actionUrl => throw _privateConstructorUsedError;
 
+  /// Quantidade de pontos necessários para resgatar o benefício
+  int get pointsRequired => throw _privateConstructorUsedError;
+
+  /// Data de expiração do benefício
+  DateTime get expirationDate => throw _privateConstructorUsedError;
+
+  /// Quantidade disponível do benefício
+  int get availableQuantity => throw _privateConstructorUsedError;
+
+  /// Termos e condições detalhados para uso do benefício
+  String? get termsAndConditions => throw _privateConstructorUsedError;
+
+  /// Indica se o benefício está em destaque
+  bool get isFeatured => throw _privateConstructorUsedError;
+
+  /// Código promocional associado ao benefício
+  String? get promoCode => throw _privateConstructorUsedError;
+
+  /// Categoria do benefício
+  String get category => throw _privateConstructorUsedError;
+
   /// Serializes this Benefit to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -68,13 +89,20 @@ abstract class $BenefitCopyWith<$Res> {
       {String id,
       String title,
       String description,
-      String? imageUrl,
+      String imageUrl,
       String? qrCodeUrl,
       DateTime? expiresAt,
       String partner,
       String? terms,
       BenefitType type,
-      String? actionUrl});
+      String? actionUrl,
+      int pointsRequired,
+      DateTime expirationDate,
+      int availableQuantity,
+      String? termsAndConditions,
+      bool isFeatured,
+      String? promoCode,
+      String category});
 }
 
 /// @nodoc
@@ -95,13 +123,20 @@ class _$BenefitCopyWithImpl<$Res, $Val extends Benefit>
     Object? id = null,
     Object? title = null,
     Object? description = null,
-    Object? imageUrl = freezed,
+    Object? imageUrl = null,
     Object? qrCodeUrl = freezed,
     Object? expiresAt = freezed,
     Object? partner = null,
     Object? terms = freezed,
     Object? type = null,
     Object? actionUrl = freezed,
+    Object? pointsRequired = null,
+    Object? expirationDate = null,
+    Object? availableQuantity = null,
+    Object? termsAndConditions = freezed,
+    Object? isFeatured = null,
+    Object? promoCode = freezed,
+    Object? category = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -116,10 +151,10 @@ class _$BenefitCopyWithImpl<$Res, $Val extends Benefit>
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
               as String,
-      imageUrl: freezed == imageUrl
+      imageUrl: null == imageUrl
           ? _value.imageUrl
           : imageUrl // ignore: cast_nullable_to_non_nullable
-              as String?,
+              as String,
       qrCodeUrl: freezed == qrCodeUrl
           ? _value.qrCodeUrl
           : qrCodeUrl // ignore: cast_nullable_to_non_nullable
@@ -144,6 +179,34 @@ class _$BenefitCopyWithImpl<$Res, $Val extends Benefit>
           ? _value.actionUrl
           : actionUrl // ignore: cast_nullable_to_non_nullable
               as String?,
+      pointsRequired: null == pointsRequired
+          ? _value.pointsRequired
+          : pointsRequired // ignore: cast_nullable_to_non_nullable
+              as int,
+      expirationDate: null == expirationDate
+          ? _value.expirationDate
+          : expirationDate // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      availableQuantity: null == availableQuantity
+          ? _value.availableQuantity
+          : availableQuantity // ignore: cast_nullable_to_non_nullable
+              as int,
+      termsAndConditions: freezed == termsAndConditions
+          ? _value.termsAndConditions
+          : termsAndConditions // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isFeatured: null == isFeatured
+          ? _value.isFeatured
+          : isFeatured // ignore: cast_nullable_to_non_nullable
+              as bool,
+      promoCode: freezed == promoCode
+          ? _value.promoCode
+          : promoCode // ignore: cast_nullable_to_non_nullable
+              as String?,
+      category: null == category
+          ? _value.category
+          : category // ignore: cast_nullable_to_non_nullable
+              as String,
     ) as $Val);
   }
 }
@@ -159,13 +222,20 @@ abstract class _$$BenefitImplCopyWith<$Res> implements $BenefitCopyWith<$Res> {
       {String id,
       String title,
       String description,
-      String? imageUrl,
+      String imageUrl,
       String? qrCodeUrl,
       DateTime? expiresAt,
       String partner,
       String? terms,
       BenefitType type,
-      String? actionUrl});
+      String? actionUrl,
+      int pointsRequired,
+      DateTime expirationDate,
+      int availableQuantity,
+      String? termsAndConditions,
+      bool isFeatured,
+      String? promoCode,
+      String category});
 }
 
 /// @nodoc
@@ -184,13 +254,20 @@ class __$$BenefitImplCopyWithImpl<$Res>
     Object? id = null,
     Object? title = null,
     Object? description = null,
-    Object? imageUrl = freezed,
+    Object? imageUrl = null,
     Object? qrCodeUrl = freezed,
     Object? expiresAt = freezed,
     Object? partner = null,
     Object? terms = freezed,
     Object? type = null,
     Object? actionUrl = freezed,
+    Object? pointsRequired = null,
+    Object? expirationDate = null,
+    Object? availableQuantity = null,
+    Object? termsAndConditions = freezed,
+    Object? isFeatured = null,
+    Object? promoCode = freezed,
+    Object? category = null,
   }) {
     return _then(_$BenefitImpl(
       id: null == id
@@ -205,10 +282,10 @@ class __$$BenefitImplCopyWithImpl<$Res>
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
               as String,
-      imageUrl: freezed == imageUrl
+      imageUrl: null == imageUrl
           ? _value.imageUrl
           : imageUrl // ignore: cast_nullable_to_non_nullable
-              as String?,
+              as String,
       qrCodeUrl: freezed == qrCodeUrl
           ? _value.qrCodeUrl
           : qrCodeUrl // ignore: cast_nullable_to_non_nullable
@@ -233,6 +310,34 @@ class __$$BenefitImplCopyWithImpl<$Res>
           ? _value.actionUrl
           : actionUrl // ignore: cast_nullable_to_non_nullable
               as String?,
+      pointsRequired: null == pointsRequired
+          ? _value.pointsRequired
+          : pointsRequired // ignore: cast_nullable_to_non_nullable
+              as int,
+      expirationDate: null == expirationDate
+          ? _value.expirationDate
+          : expirationDate // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      availableQuantity: null == availableQuantity
+          ? _value.availableQuantity
+          : availableQuantity // ignore: cast_nullable_to_non_nullable
+              as int,
+      termsAndConditions: freezed == termsAndConditions
+          ? _value.termsAndConditions
+          : termsAndConditions // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isFeatured: null == isFeatured
+          ? _value.isFeatured
+          : isFeatured // ignore: cast_nullable_to_non_nullable
+              as bool,
+      promoCode: freezed == promoCode
+          ? _value.promoCode
+          : promoCode // ignore: cast_nullable_to_non_nullable
+              as String?,
+      category: null == category
+          ? _value.category
+          : category // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -244,13 +349,20 @@ class _$BenefitImpl implements _Benefit {
       {required this.id,
       required this.title,
       required this.description,
-      this.imageUrl,
+      this.imageUrl = '',
       this.qrCodeUrl,
       this.expiresAt,
       required this.partner,
       this.terms,
       this.type = BenefitType.coupon,
-      this.actionUrl});
+      this.actionUrl,
+      required this.pointsRequired,
+      required this.expirationDate,
+      required this.availableQuantity,
+      this.termsAndConditions,
+      this.isFeatured = false,
+      this.promoCode,
+      this.category = ''});
 
   factory _$BenefitImpl.fromJson(Map<String, dynamic> json) =>
       _$$BenefitImplFromJson(json);
@@ -269,7 +381,8 @@ class _$BenefitImpl implements _Benefit {
 
   /// URL da imagem que representa o benefício
   @override
-  final String? imageUrl;
+  @JsonKey()
+  final String imageUrl;
 
   /// URL do QR Code do benefício (opcional)
   @override
@@ -296,9 +409,39 @@ class _$BenefitImpl implements _Benefit {
   @override
   final String? actionUrl;
 
+  /// Quantidade de pontos necessários para resgatar o benefício
+  @override
+  final int pointsRequired;
+
+  /// Data de expiração do benefício
+  @override
+  final DateTime expirationDate;
+
+  /// Quantidade disponível do benefício
+  @override
+  final int availableQuantity;
+
+  /// Termos e condições detalhados para uso do benefício
+  @override
+  final String? termsAndConditions;
+
+  /// Indica se o benefício está em destaque
+  @override
+  @JsonKey()
+  final bool isFeatured;
+
+  /// Código promocional associado ao benefício
+  @override
+  final String? promoCode;
+
+  /// Categoria do benefício
+  @override
+  @JsonKey()
+  final String category;
+
   @override
   String toString() {
-    return 'Benefit(id: $id, title: $title, description: $description, imageUrl: $imageUrl, qrCodeUrl: $qrCodeUrl, expiresAt: $expiresAt, partner: $partner, terms: $terms, type: $type, actionUrl: $actionUrl)';
+    return 'Benefit(id: $id, title: $title, description: $description, imageUrl: $imageUrl, qrCodeUrl: $qrCodeUrl, expiresAt: $expiresAt, partner: $partner, terms: $terms, type: $type, actionUrl: $actionUrl, pointsRequired: $pointsRequired, expirationDate: $expirationDate, availableQuantity: $availableQuantity, termsAndConditions: $termsAndConditions, isFeatured: $isFeatured, promoCode: $promoCode, category: $category)';
   }
 
   @override
@@ -320,13 +463,44 @@ class _$BenefitImpl implements _Benefit {
             (identical(other.terms, terms) || other.terms == terms) &&
             (identical(other.type, type) || other.type == type) &&
             (identical(other.actionUrl, actionUrl) ||
-                other.actionUrl == actionUrl));
+                other.actionUrl == actionUrl) &&
+            (identical(other.pointsRequired, pointsRequired) ||
+                other.pointsRequired == pointsRequired) &&
+            (identical(other.expirationDate, expirationDate) ||
+                other.expirationDate == expirationDate) &&
+            (identical(other.availableQuantity, availableQuantity) ||
+                other.availableQuantity == availableQuantity) &&
+            (identical(other.termsAndConditions, termsAndConditions) ||
+                other.termsAndConditions == termsAndConditions) &&
+            (identical(other.isFeatured, isFeatured) ||
+                other.isFeatured == isFeatured) &&
+            (identical(other.promoCode, promoCode) ||
+                other.promoCode == promoCode) &&
+            (identical(other.category, category) ||
+                other.category == category));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, title, description, imageUrl,
-      qrCodeUrl, expiresAt, partner, terms, type, actionUrl);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      title,
+      description,
+      imageUrl,
+      qrCodeUrl,
+      expiresAt,
+      partner,
+      terms,
+      type,
+      actionUrl,
+      pointsRequired,
+      expirationDate,
+      availableQuantity,
+      termsAndConditions,
+      isFeatured,
+      promoCode,
+      category);
 
   /// Create a copy of Benefit
   /// with the given fields replaced by the non-null parameter values.
@@ -349,13 +523,20 @@ abstract class _Benefit implements Benefit {
       {required final String id,
       required final String title,
       required final String description,
-      final String? imageUrl,
+      final String imageUrl,
       final String? qrCodeUrl,
       final DateTime? expiresAt,
       required final String partner,
       final String? terms,
       final BenefitType type,
-      final String? actionUrl}) = _$BenefitImpl;
+      final String? actionUrl,
+      required final int pointsRequired,
+      required final DateTime expirationDate,
+      required final int availableQuantity,
+      final String? termsAndConditions,
+      final bool isFeatured,
+      final String? promoCode,
+      final String category}) = _$BenefitImpl;
 
   factory _Benefit.fromJson(Map<String, dynamic> json) = _$BenefitImpl.fromJson;
 
@@ -373,7 +554,7 @@ abstract class _Benefit implements Benefit {
 
   /// URL da imagem que representa o benefício
   @override
-  String? get imageUrl;
+  String get imageUrl;
 
   /// URL do QR Code do benefício (opcional)
   @override
@@ -398,6 +579,34 @@ abstract class _Benefit implements Benefit {
   /// URL de ação associada ao benefício
   @override
   String? get actionUrl;
+
+  /// Quantidade de pontos necessários para resgatar o benefício
+  @override
+  int get pointsRequired;
+
+  /// Data de expiração do benefício
+  @override
+  DateTime get expirationDate;
+
+  /// Quantidade disponível do benefício
+  @override
+  int get availableQuantity;
+
+  /// Termos e condições detalhados para uso do benefício
+  @override
+  String? get termsAndConditions;
+
+  /// Indica se o benefício está em destaque
+  @override
+  bool get isFeatured;
+
+  /// Código promocional associado ao benefício
+  @override
+  String? get promoCode;
+
+  /// Categoria do benefício
+  @override
+  String get category;
 
   /// Create a copy of Benefit
   /// with the given fields replaced by the non-null parameter values.

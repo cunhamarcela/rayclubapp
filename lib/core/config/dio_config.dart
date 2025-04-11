@@ -1,5 +1,9 @@
+// Package imports:
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+// Project imports:
 import 'package:ray_club_app/core/config/app_config.dart';
 
 final dioProvider = Provider<Dio>((ref) {
@@ -84,7 +88,14 @@ class _ErrorInterceptor extends Interceptor {
 class _AuthInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    // TODO: Add auth token to requests
+    // Adiciona o token de autenticação às requisições caso o usuário esteja autenticado
+    final supabaseClient = Supabase.instance.client;
+    final session = supabaseClient.auth.currentSession;
+    
+    if (session != null && session.accessToken.isNotEmpty) {
+      options.headers['Authorization'] = 'Bearer ${session.accessToken}';
+    }
+    
     return super.onRequest(options, handler);
   }
 }

@@ -1,5 +1,10 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
+import 'package:ray_club_app/core/errors/app_exception.dart';
 import 'package:ray_club_app/features/home/models/featured_content.dart';
+import 'package:ray_club_app/services/supabase_client.dart';
 
 /// Interface para o repositório de conteúdos em destaque
 abstract class FeaturedContentRepository {
@@ -84,36 +89,97 @@ class MockFeaturedContentRepository implements FeaturedContentRepository {
 
 /// Implementação real do repositório usando Supabase (para ser implementado futuramente)
 class SupabaseFeaturedContentRepository implements FeaturedContentRepository {
+  final SupabaseClient _supabaseClient;
+  
+  SupabaseFeaturedContentRepository(this._supabaseClient);
+  
   @override
   Future<List<FeaturedContent>> getFeaturedContents() async {
-    // TODO: Implementar a lógica real com Supabase
-    // Exemplo:
-    // final response = await _supabaseClient
-    //     .from('featured_contents')
-    //     .select('*, category:categories(*)')
-    //     .order('published_at', ascending: false)
-    //     .execute();
-    
-    // Retornar mockados por enquanto
-    return MockFeaturedContentRepository().getFeaturedContents();
+    try {
+      final response = await _supabaseClient
+          .from('featured_contents')
+          .select('*, category:categories(id, name, color)')
+          .order('published_at', ascending: false);
+      
+      return (response as List<dynamic>)
+          .map((data) => _mapToFeaturedContent(data))
+          .toList();
+    } catch (e) {
+      // Em caso de erro durante o desenvolvimento, retornar dados mock como fallback
+      print('Erro ao buscar conteúdos destacados: $e');
+      return MockFeaturedContentRepository().getFeaturedContents();
+    }
   }
 
   @override
   Future<FeaturedContent?> getFeaturedContentById(String id) async {
-    // TODO: Implementar a lógica real com Supabase
-    // Exemplo:
-    // final response = await _supabaseClient
-    //     .from('featured_contents')
-    //     .select('*, category:categories(*)')
-    //     .eq('id', id)
-    //     .single()
-    //     .execute();
-    
-    // Retornar mockados por enquanto
-    return MockFeaturedContentRepository().getFeaturedContentById(id);
+    try {
+      final response = await _supabaseClient
+          .from('featured_contents')
+          .select('*, category:categories(id, name, color)')
+          .eq('id', id)
+          .single();
+      
+      return _mapToFeaturedContent(response);
+    } catch (e) {
+      // Em caso de erro durante o desenvolvimento, retornar dados mock como fallback
+      print('Erro ao buscar conteúdo destacado por ID: $e');
+      return MockFeaturedContentRepository().getFeaturedContentById(id);
+    }
   }
   
-  // Helper para converter hex para Color (para quando implementar com dados reais)
+  // Helper para converter dados do Supabase para o modelo FeaturedContent
+  FeaturedContent _mapToFeaturedContent(Map<String, dynamic> data) {
+    // Processa a categoria
+    final categoryData = data['category'] as Map<String, dynamic>?;
+    final category = categoryData != null
+        ? ContentCategory(
+            id: categoryData['id'] as String,
+            name: categoryData['name'] as String,
+            color: _hexToColor(categoryData['color'] as String? ?? '#6E44FF'),
+            colorHex: categoryData['color'] as String? ?? '#6E44FF',
+          )
+        : ContentCategory(
+            id: 'default',
+            name: 'Geral',
+            color: const Color(0xFF6E44FF),
+            colorHex: '#6E44FF',
+          );
+    
+    // Determinar o ícone com base no tipo
+    IconData icon = Icons.star;
+    final type = data['type'] as String? ?? 'article';
+    switch (type.toLowerCase()) {
+      case 'workout':
+        icon = Icons.fitness_center;
+        break;
+      case 'nutrition':
+        icon = Icons.restaurant;
+        break;
+      case 'wellness':
+        icon = Icons.spa;
+        break;
+      case 'challenge':
+        icon = Icons.emoji_events;
+        break;
+      default:
+        icon = Icons.article;
+    }
+    
+    return FeaturedContent(
+      id: data['id'] as String,
+      title: data['title'] as String,
+      description: data['description'] as String,
+      category: category,
+      icon: icon,
+      imageUrl: data['image_url'] as String?,
+      actionUrl: data['content_url'] as String?,
+      publishedAt: data['published_at'] != null ? DateTime.parse(data['published_at'] as String) : null,
+      isFeatured: data['is_featured'] as bool? ?? false,
+    );
+  }
+  
+  // Helper para converter hex para Color
   Color _hexToColor(String hexString) {
     final buffer = StringBuffer();
     if (hexString.length == 6 || hexString.length == 7) buffer.write('ff');

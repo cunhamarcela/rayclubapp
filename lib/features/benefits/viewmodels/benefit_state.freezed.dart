@@ -45,6 +45,9 @@ mixin _$BenefitState {
   /// Mensagem de erro, se houver
   String? get errorMessage => throw _privateConstructorUsedError;
 
+  /// Mensagem de sucesso, se houver
+  String? get successMessage => throw _privateConstructorUsedError;
+
   /// Indica se está em processo de resgate
   bool get isRedeeming => throw _privateConstructorUsedError;
 
@@ -74,6 +77,7 @@ abstract class $BenefitStateCopyWith<$Res> {
       int? userPoints,
       bool isLoading,
       String? errorMessage,
+      String? successMessage,
       bool isRedeeming,
       Benefit? benefitBeingRedeemed});
 
@@ -106,6 +110,7 @@ class _$BenefitStateCopyWithImpl<$Res, $Val extends BenefitState>
     Object? userPoints = freezed,
     Object? isLoading = null,
     Object? errorMessage = freezed,
+    Object? successMessage = freezed,
     Object? isRedeeming = null,
     Object? benefitBeingRedeemed = freezed,
   }) {
@@ -145,6 +150,10 @@ class _$BenefitStateCopyWithImpl<$Res, $Val extends BenefitState>
       errorMessage: freezed == errorMessage
           ? _value.errorMessage
           : errorMessage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      successMessage: freezed == successMessage
+          ? _value.successMessage
+          : successMessage // ignore: cast_nullable_to_non_nullable
               as String?,
       isRedeeming: null == isRedeeming
           ? _value.isRedeeming
@@ -219,6 +228,7 @@ abstract class _$$BenefitStateImplCopyWith<$Res>
       int? userPoints,
       bool isLoading,
       String? errorMessage,
+      String? successMessage,
       bool isRedeeming,
       Benefit? benefitBeingRedeemed});
 
@@ -252,6 +262,7 @@ class __$$BenefitStateImplCopyWithImpl<$Res>
     Object? userPoints = freezed,
     Object? isLoading = null,
     Object? errorMessage = freezed,
+    Object? successMessage = freezed,
     Object? isRedeeming = null,
     Object? benefitBeingRedeemed = freezed,
   }) {
@@ -292,6 +303,10 @@ class __$$BenefitStateImplCopyWithImpl<$Res>
           ? _value.errorMessage
           : errorMessage // ignore: cast_nullable_to_non_nullable
               as String?,
+      successMessage: freezed == successMessage
+          ? _value.successMessage
+          : successMessage // ignore: cast_nullable_to_non_nullable
+              as String?,
       isRedeeming: null == isRedeeming
           ? _value.isRedeeming
           : isRedeeming // ignore: cast_nullable_to_non_nullable
@@ -317,6 +332,7 @@ class _$BenefitStateImpl implements _BenefitState {
       this.userPoints,
       this.isLoading = false,
       this.errorMessage,
+      this.successMessage,
       this.isRedeeming = false,
       this.benefitBeingRedeemed})
       : _benefits = benefits,
@@ -385,6 +401,10 @@ class _$BenefitStateImpl implements _BenefitState {
   @override
   final String? errorMessage;
 
+  /// Mensagem de sucesso, se houver
+  @override
+  final String? successMessage;
+
   /// Indica se está em processo de resgate
   @override
   @JsonKey()
@@ -396,7 +416,7 @@ class _$BenefitStateImpl implements _BenefitState {
 
   @override
   String toString() {
-    return 'BenefitState(benefits: $benefits, redeemedBenefits: $redeemedBenefits, categories: $categories, selectedCategory: $selectedCategory, selectedBenefit: $selectedBenefit, selectedRedeemedBenefit: $selectedRedeemedBenefit, userPoints: $userPoints, isLoading: $isLoading, errorMessage: $errorMessage, isRedeeming: $isRedeeming, benefitBeingRedeemed: $benefitBeingRedeemed)';
+    return 'BenefitState(benefits: $benefits, redeemedBenefits: $redeemedBenefits, categories: $categories, selectedCategory: $selectedCategory, selectedBenefit: $selectedBenefit, selectedRedeemedBenefit: $selectedRedeemedBenefit, userPoints: $userPoints, isLoading: $isLoading, errorMessage: $errorMessage, successMessage: $successMessage, isRedeeming: $isRedeeming, benefitBeingRedeemed: $benefitBeingRedeemed)';
   }
 
   @override
@@ -422,6 +442,8 @@ class _$BenefitStateImpl implements _BenefitState {
                 other.isLoading == isLoading) &&
             (identical(other.errorMessage, errorMessage) ||
                 other.errorMessage == errorMessage) &&
+            (identical(other.successMessage, successMessage) ||
+                other.successMessage == successMessage) &&
             (identical(other.isRedeeming, isRedeeming) ||
                 other.isRedeeming == isRedeeming) &&
             (identical(other.benefitBeingRedeemed, benefitBeingRedeemed) ||
@@ -440,6 +462,7 @@ class _$BenefitStateImpl implements _BenefitState {
       userPoints,
       isLoading,
       errorMessage,
+      successMessage,
       isRedeeming,
       benefitBeingRedeemed);
 
@@ -463,6 +486,7 @@ abstract class _BenefitState implements BenefitState {
       final int? userPoints,
       final bool isLoading,
       final String? errorMessage,
+      final String? successMessage,
       final bool isRedeeming,
       final Benefit? benefitBeingRedeemed}) = _$BenefitStateImpl;
 
@@ -501,6 +525,10 @@ abstract class _BenefitState implements BenefitState {
   /// Mensagem de erro, se houver
   @override
   String? get errorMessage;
+
+  /// Mensagem de sucesso, se houver
+  @override
+  String? get successMessage;
 
   /// Indica se está em processo de resgate
   @override

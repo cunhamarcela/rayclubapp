@@ -1,15 +1,20 @@
+// Dart imports:
 import 'dart:async';
 import 'dart:math';
 
+// Package imports:
 import 'package:uuid/uuid.dart';
 
-import '../../../core/errors/app_exception.dart';
+// Project imports:
+import '../../../core/errors/app_exception.dart' as app_errors;
+import '../enums/benefit_type.dart';
 import '../models/benefit.dart';
 import '../models/redeemed_benefit.dart';
 import 'benefit_repository.dart';
+import 'benefits_repository.dart';
 
 /// Implementação mock do BenefitRepository para testes e desenvolvimento
-class MockBenefitRepository implements BenefitRepository {
+class MockBenefitRepository implements BenefitRepository, BenefitsRepository {
   final List<Benefit> _mockBenefits = [];
   final List<RedeemedBenefit> _mockRedeemedBenefits = [];
   final Uuid _uuid = const Uuid();
@@ -22,11 +27,6 @@ class MockBenefitRepository implements BenefitRepository {
   }
   
   void _initMockData() {
-    // Categorias para benefícios
-    final categories = [
-      'Fitness', 'Alimentação', 'Bem-estar', 'Experiências', 'Produtos'
-    ];
-    
     // Parceiros
     final partners = [
       'Ray Gym', 'NutriFood', 'ZenMind', 'EcoStore', 'SportGear'
@@ -34,24 +34,25 @@ class MockBenefitRepository implements BenefitRepository {
     
     // Preenche dados mock de benefícios
     for (int i = 0; i < 15; i++) {
-      final category = categories[i % categories.length];
       final partner = partners[i % partners.length];
-      final pointsRequired = (Random().nextInt(8) + 1) * 50; // 50, 100, 150... até 400
+      final type = i % 3 == 0 ? BenefitType.qrCode : 
+                  i % 3 == 1 ? BenefitType.coupon : BenefitType.link;
       
       _mockBenefits.add(Benefit(
         id: _uuid.v4(),
-        title: 'Benefício ${i + 1} - $category',
+        title: 'Benefício ${i + 1}',
         description: 'Descrição detalhada do benefício ${i + 1} oferecido por $partner.',
         imageUrl: 'https://via.placeholder.com/300x200.png?text=Benefit+${i + 1}',
-        pointsRequired: pointsRequired,
-        category: category,
         partner: partner,
-        expirationDate: i % 3 == 0 ? DateTime.now().add(Duration(days: 30 + i)) : null,
-        isFeatured: i < 3, // Primeiros 3 são destacados
-        promoCode: 'RAYCLUB${100 + i}',
-        termsAndConditions: 'Termos e condições aplicáveis. Oferta válida enquanto durar o estoque.',
-        availableQuantity: i % 4 == 0 ? 5 + i : null,
-        externalUrl: i % 2 == 0 ? 'https://example.com/benefit/$i' : null,
+        expiresAt: i % 3 == 0 ? DateTime.now().add(Duration(days: 30 + i)) : null,
+        terms: 'Termos e condições aplicáveis. Oferta válida enquanto durar o estoque.',
+        type: type,
+        actionUrl: i % 2 == 0 ? 'https://example.com/benefit/$i' : null,
+        qrCodeUrl: type == BenefitType.qrCode ? 'https://via.placeholder.com/300x300.png?text=QR+Code+${i + 1}' : null,
+        pointsRequired: 100 + (i * 50),
+        expirationDate: DateTime.now().add(Duration(days: 30 + i)),
+        availableQuantity: 10 - (i % 5),
+        termsAndConditions: 'Termos e condições detalhados para o benefício ${i + 1}. Válido para uso único.',
       ));
     }
     
@@ -108,9 +109,20 @@ class MockBenefitRepository implements BenefitRepository {
   }
 
   @override
-  Future<List<Benefit>> getBenefitsByCategory(String category) async {
+  Future<List<Benefit>> getAllBenefits() async {
+    return getBenefits();
+  }
+
+  @override
+  Future<List<Benefit>> getBenefitsByType(BenefitType type) async {
     await _simulateNetworkDelay();
-    return _mockBenefits.where((benefit) => benefit.category == category).toList();
+    return _mockBenefits.where((benefit) => benefit.type == type).toList();
+  }
+
+  @override
+  Future<List<Benefit>> getBenefitsByPartner(String partner) async {
+    await _simulateNetworkDelay();
+    return _mockBenefits.where((benefit) => benefit.partner == partner).toList();
   }
 
   @override
@@ -129,38 +141,33 @@ class MockBenefitRepository implements BenefitRepository {
     
     final benefit = await getBenefitById(benefitId);
     if (benefit == null) {
-      throw StorageException(
+      throw app_errors.StorageException(
         message: 'Benefício não encontrado',
         code: 'benefit_not_found',
       );
     }
     
+    // Como o modelo não tem mais pointsRequired, usamos um valor fixo para simulação
+    final int simulatedPointsRequired = 100;
+    
     // Verifica se o usuário tem pontos suficientes
-    if (_userPoints < benefit.pointsRequired) {
-      throw ValidationException(
+    if (_userPoints < simulatedPointsRequired) {
+      throw app_errors.ValidationException(
         message: 'Pontos insuficientes para resgatar este benefício',
         code: 'insufficient_points',
       );
     }
     
-    // Verifica se ainda há quantidade disponível
-    if (benefit.availableQuantity != null && benefit.availableQuantity! <= 0) {
-      throw ValidationException(
-        message: 'Este benefício não está mais disponível',
-        code: 'no_available_quantity',
-      );
-    }
-    
     // Verifica se não está expirado
-    if (benefit.expirationDate != null && benefit.expirationDate!.isBefore(DateTime.now())) {
-      throw ValidationException(
+    if (benefit.expiresAt != null && benefit.expiresAt!.isBefore(DateTime.now())) {
+      throw app_errors.ValidationException(
         message: 'Este benefício expirou',
         code: 'benefit_expired',
       );
     }
     
     // Subtrai pontos do usuário
-    _userPoints -= benefit.pointsRequired;
+    _userPoints -= simulatedPointsRequired;
     
     // Define data de expiração padrão (30 dias)
     final expiresAt = DateTime.now().add(const Duration(days: 30));
@@ -177,14 +184,6 @@ class MockBenefitRepository implements BenefitRepository {
       benefitSnapshot: benefit,
     );
     
-    // Reduz a quantidade disponível, se aplicável
-    final index = _mockBenefits.indexWhere((b) => b.id == benefitId);
-    if (index >= 0 && _mockBenefits[index].availableQuantity != null) {
-      _mockBenefits[index] = _mockBenefits[index].copyWith(
-        availableQuantity: _mockBenefits[index].availableQuantity! - 1
-      );
-    }
-    
     _mockRedeemedBenefits.add(redeemedBenefit);
     return redeemedBenefit;
   }
@@ -199,10 +198,26 @@ class MockBenefitRepository implements BenefitRepository {
   Future<RedeemedBenefit?> getRedeemedBenefitById(String id) async {
     await _simulateNetworkDelay();
     try {
-      return _mockRedeemedBenefits.firstWhere((benefit) => benefit.id == id);
+      return _mockRedeemedBenefits.firstWhere((redeemed) => redeemed.id == id);
     } catch (e) {
       return null;
     }
+  }
+
+  @override
+  Future<RedeemedBenefit?> updateBenefitStatus(String redeemedBenefitId, RedemptionStatus newStatus) async {
+    await _simulateNetworkDelay();
+    
+    final index = _mockRedeemedBenefits.indexWhere((redeemed) => redeemed.id == redeemedBenefitId);
+    if (index < 0) {
+      return null;
+    }
+    
+    // Atualiza o status do benefício
+    final updatedBenefit = _mockRedeemedBenefits[index].copyWith(status: newStatus);
+    _mockRedeemedBenefits[index] = updatedBenefit;
+    
+    return updatedBenefit;
   }
 
   @override
@@ -211,7 +226,7 @@ class MockBenefitRepository implements BenefitRepository {
     
     final index = _mockRedeemedBenefits.indexWhere((b) => b.id == redeemedBenefitId);
     if (index < 0) {
-      throw StorageException(
+      throw app_errors.StorageException(
         message: 'Benefício resgatado não encontrado',
         code: 'redeemed_benefit_not_found',
       );
@@ -219,7 +234,7 @@ class MockBenefitRepository implements BenefitRepository {
     
     // Verifica se o benefício está ativo
     if (_mockRedeemedBenefits[index].status != RedemptionStatus.active) {
-      throw ValidationException(
+      throw app_errors.ValidationException(
         message: 'Este benefício não está ativo',
         code: 'benefit_not_active',
       );
@@ -241,7 +256,7 @@ class MockBenefitRepository implements BenefitRepository {
     
     final index = _mockRedeemedBenefits.indexWhere((b) => b.id == redeemedBenefitId);
     if (index < 0) {
-      throw StorageException(
+      throw app_errors.StorageException(
         message: 'Benefício resgatado não encontrado',
         code: 'redeemed_benefit_not_found',
       );
@@ -249,29 +264,35 @@ class MockBenefitRepository implements BenefitRepository {
     
     // Verifica se o benefício está ativo (só pode cancelar se estiver ativo)
     if (_mockRedeemedBenefits[index].status != RedemptionStatus.active) {
-      throw ValidationException(
+      throw app_errors.ValidationException(
         message: 'Apenas benefícios ativos podem ser cancelados',
         code: 'benefit_not_active',
       );
     }
     
-    // Devolve os pontos ao usuário
+    // Atualiza o status para cancelado
+    _mockRedeemedBenefits[index] = _mockRedeemedBenefits[index].copyWith(
+      status: RedemptionStatus.cancelled
+    );
+    
+    // Retorna os pontos para o usuário
     final benefitSnapshot = _mockRedeemedBenefits[index].benefitSnapshot;
     if (benefitSnapshot != null) {
-      _userPoints += benefitSnapshot.pointsRequired;
+      // Como o modelo não tem mais pointsRequired, usamos um valor fixo
+      final int simulatedPointsRequired = 100;
+      _userPoints += simulatedPointsRequired;
     }
-    
-    // Atualiza status para cancelado
-    _mockRedeemedBenefits[index] = _mockRedeemedBenefits[index].copyWith(
-      status: RedemptionStatus.cancelled,
-    );
   }
 
   @override
   Future<List<String>> getBenefitCategories() async {
     await _simulateNetworkDelay();
-    final categories = _mockBenefits.map((b) => b.category).toSet().toList();
-    return categories;
+    // Extrair categorias únicas dos parceiros
+    final categories = <String>{};
+    for (var benefit in _mockBenefits) {
+      categories.add(benefit.partner);
+    }
+    return categories.toList();
   }
 
   @override
@@ -280,10 +301,7 @@ class MockBenefitRepository implements BenefitRepository {
     
     final benefit = await getBenefitById(benefitId);
     if (benefit == null) {
-      throw StorageException(
-        message: 'Benefício não encontrado',
-        code: 'benefit_not_found',
-      );
+      return false;
     }
     
     return _userPoints >= benefit.pointsRequired;
@@ -292,7 +310,9 @@ class MockBenefitRepository implements BenefitRepository {
   @override
   Future<List<Benefit>> getFeaturedBenefits() async {
     await _simulateNetworkDelay();
-    return _mockBenefits.where((benefit) => benefit.isFeatured).toList();
+    // Como não temos mais isFeatured, selecionar aleatoriamente alguns benefícios
+    final random = Random();
+    return _mockBenefits.where((_) => random.nextBool()).take(3).toList();
   }
   
   // Método auxiliar para adicionar pontos ao usuário (apenas para testes)
@@ -303,6 +323,105 @@ class MockBenefitRepository implements BenefitRepository {
   
   // Método auxiliar para obter pontos do usuário atual (apenas para testes)
   Future<int> getUserPoints() async {
+    await _simulateNetworkDelay();
     return _userPoints;
+  }
+  
+  // IMPLEMENTAÇÃO DE MÉTODOS DE ADMINISTRAÇÃO
+  
+  /// Simula o status de admin do usuário atual (para fins de demo)
+  bool _isAdminUser = true;
+  
+  @override
+  Future<bool> isAdmin() async {
+    await _simulateNetworkDelay();
+    return _isAdminUser;
+  }
+  
+  /// Alternar status de admin para testes
+  void toggleAdminStatus() {
+    _isAdminUser = !_isAdminUser;
+  }
+  
+  @override
+  Future<Benefit?> updateBenefitExpiration(String benefitId, DateTime? newExpirationDate) async {
+    await _simulateNetworkDelay();
+    
+    // Verificar se é admin
+    if (!await isAdmin()) {
+      throw app_errors.AppAuthException(
+        message: 'Permissão negada. Apenas administradores podem atualizar datas de expiração.',
+        code: 'permission_denied',
+      );
+    }
+    
+    final index = _mockBenefits.indexWhere((b) => b.id == benefitId);
+    if (index < 0) return null;
+    
+    final updatedBenefit = _mockBenefits[index].copyWith(expirationDate: newExpirationDate ?? _mockBenefits[index].expirationDate);
+    _mockBenefits[index] = updatedBenefit;
+    return updatedBenefit;
+  }
+  
+  @override
+  Future<RedeemedBenefit?> extendRedeemedBenefitExpiration(String redeemedBenefitId, DateTime? newExpirationDate) async {
+    await _simulateNetworkDelay();
+    
+    // Verificar se é admin
+    if (!await isAdmin()) {
+      throw app_errors.AppAuthException(
+        message: 'Permissão negada. Apenas administradores podem estender a validade de benefícios resgatados.',
+        code: 'permission_denied',
+      );
+    }
+    
+    final index = _mockRedeemedBenefits.indexWhere((rb) => rb.id == redeemedBenefitId);
+    if (index < 0) {
+      return null;
+    }
+    
+    // Se o benefício estiver expirado e estiver recebendo uma nova data, atualizar o status para ativo
+    RedemptionStatus newStatus = _mockRedeemedBenefits[index].status;
+    if (_mockRedeemedBenefits[index].status == RedemptionStatus.expired && 
+        newExpirationDate != null && 
+        newExpirationDate.isAfter(DateTime.now())) {
+      newStatus = RedemptionStatus.active;
+    }
+    
+    // Atualizar a data de expiração e possivelmente o status
+    final updatedBenefit = _mockRedeemedBenefits[index].copyWith(
+      expiresAt: newExpirationDate,
+      status: newStatus
+    );
+    
+    _mockRedeemedBenefits[index] = updatedBenefit;
+    return updatedBenefit;
+  }
+  
+  @override
+  Future<List<RedeemedBenefit>> getAllRedeemedBenefits() async {
+    await _simulateNetworkDelay();
+    
+    // Verificar se é admin
+    if (!await isAdmin()) {
+      throw app_errors.AppAuthException(
+        message: 'Permissão negada. Apenas administradores podem ver todos os benefícios resgatados.',
+        code: 'permission_denied',
+      );
+    }
+    
+    return List.of(_mockRedeemedBenefits);
+  }
+
+  @override
+  Future<List<Benefit>> getBenefitsByCategory(String category) async {
+    await _simulateNetworkDelay();
+    return _mockBenefits.where((benefit) => benefit.partner == category).toList();
+  }
+
+  @override
+  Future<bool> isCurrentUserAdmin() async {
+    await _simulateNetworkDelay();
+    return _isAdminUser;
   }
 } 

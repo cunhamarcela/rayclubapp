@@ -1,12 +1,17 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+// Project imports:
 import 'package:ray_club_app/core/providers/providers.dart';
+import 'package:ray_club_app/features/auth/models/auth_state.dart';
+import 'package:ray_club_app/features/auth/viewmodels/auth_view_model.dart';
+import 'package:ray_club_app/features/home/models/home_state.dart';
 import 'package:ray_club_app/features/home/screens/home_screen.dart';
-import 'package:ray_club_app/view_models/auth/auth_view_model.dart';
-import 'package:ray_club_app/view_models/auth/states/auth_state.dart';
-import 'package:ray_club_app/view_models/home/home_view_model.dart';
-import 'package:ray_club_app/view_models/home/states/home_state.dart';
+import 'package:ray_club_app/features/home/viewmodels/home_view_model.dart';
 import 'package:ray_club_app/features/home/widgets/challenge/challenge_card.dart';
 import 'package:ray_club_app/features/home/widgets/workout/workout_card.dart';
 

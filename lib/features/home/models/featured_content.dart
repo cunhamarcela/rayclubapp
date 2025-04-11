@@ -1,4 +1,7 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'featured_content.freezed.dart';
@@ -59,50 +62,74 @@ class ContentCategory with _$ContentCategory {
 final List<FeaturedContent> featuredContents = [
   FeaturedContent(
     id: '1',
-    title: 'Dicas de Nutrição',
-    description: 'Como montar um prato ideal após o treino',
+    title: 'Treinos para fazer viajando',
+    description: 'Exercícios simples que cabem na sua mala e no seu tempo',
     category: ContentCategory(
-      id: 'nutrition',
-      name: 'Nutrição',
-      color: Colors.green,
-      colorHex: '#4CAF50',
+      id: 'travel',
+      name: 'Viagem',
+      color: Colors.blue,
+      colorHex: '#2196F3',
     ),
-    icon: Icons.restaurant,
+    icon: Icons.flight,
   ),
   FeaturedContent(
     id: '2',
-    title: 'Treino HIIT de 20 minutos',
-    description: 'Queime calorias em casa sem equipamentos',
+    title: 'HIIT de 7 minutos',
+    description: 'Treino rápido e intenso para dias corridos',
     category: ContentCategory(
       id: 'training',
       name: 'Treinos',
       color: Colors.orange,
       colorHex: '#FF9800',
     ),
-    icon: Icons.fitness_center,
+    icon: Icons.timer,
   ),
   FeaturedContent(
     id: '3',
-    title: 'Alongamento pós-treino',
-    description: 'Técnicas para recuperação muscular eficiente',
+    title: 'Receita pré-treino com 2 ingredientes',
+    description: 'Shake energético simples e rápido de preparar',
     category: ContentCategory(
-      id: 'recovery',
-      name: 'Recuperação',
-      color: Colors.blue,
-      colorHex: '#2196F3',
+      id: 'nutrition',
+      name: 'Nutrição',
+      color: Colors.green,
+      colorHex: '#4CAF50',
     ),
-    icon: Icons.self_improvement,
+    icon: Icons.blender,
   ),
   FeaturedContent(
     id: '4',
-    title: 'Meditações guiadas',
-    description: 'Reduza o estresse e melhore seu sono',
+    title: 'Yoga para relaxar em 15 minutos',
+    description: 'Sequência para fazer antes de dormir e melhorar seu sono',
     category: ContentCategory(
       id: 'wellness',
       name: 'Bem-estar',
       color: Colors.purple,
       colorHex: '#9C27B0',
     ),
-    icon: Icons.spa,
+    icon: Icons.self_improvement,
+  ),
+  FeaturedContent(
+    id: '5',
+    title: 'Exercícios para fazer no escritório',
+    description: 'Alivie a tensão sem sair da sua mesa',
+    category: ContentCategory(
+      id: 'office',
+      name: 'Trabalho',
+      color: Colors.brown,
+      colorHex: '#795548',
+    ),
+    icon: Icons.chair,
+  ),
+  FeaturedContent(
+    id: '6',
+    title: 'Treino completo sem equipamentos',
+    description: 'Trabalhe todos os grupos musculares apenas com seu peso corporal',
+    category: ContentCategory(
+      id: 'bodyweight',
+      name: 'Sem Equip.',
+      color: Colors.red,
+      colorHex: '#F44336',
+    ),
+    icon: Icons.fitness_center,
   ),
 ]; 

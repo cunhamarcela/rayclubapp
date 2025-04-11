@@ -1,7 +1,12 @@
+// Dart imports:
 import 'dart:async';
+
+// Flutter imports:
 import 'package:flutter/foundation.dart';
-import 'package:ray_club_app/utils/log_utils.dart';
+
+// Project imports:
 import 'package:ray_club_app/services/remote_logging_service.dart';
+import 'package:ray_club_app/utils/log_utils.dart';
 
 /// Classe para monitorar o desempenho de operações críticas
 class PerformanceMonitor {

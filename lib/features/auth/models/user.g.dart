@@ -18,16 +18,19 @@ _$AppUserImpl _$$AppUserImplFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['updatedAt'] as String),
       isEmailVerified: json['isEmailVerified'] as bool,
       metadata: json['metadata'] as Map<String, dynamic>?,
+      isAdmin: json['isAdmin'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$AppUserImplToJson(_$AppUserImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'email': instance.email,
-      'name': instance.name,
-      'photoUrl': instance.photoUrl,
+      if (instance.name case final value?) 'name': value,
+      if (instance.photoUrl case final value?) 'photoUrl': value,
       'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt?.toIso8601String(),
+      if (instance.updatedAt?.toIso8601String() case final value?)
+        'updatedAt': value,
       'isEmailVerified': instance.isEmailVerified,
-      'metadata': instance.metadata,
+      if (instance.metadata case final value?) 'metadata': value,
+      if (instance.isAdmin case final value?) 'isAdmin': value,
     };

@@ -1,10 +1,17 @@
+// Dart imports:
 import 'dart:convert';
+
+// Flutter imports:
+import 'package:flutter/foundation.dart';
+
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+// Project imports:
 import 'package:ray_club_app/core/di/base_service.dart';
 import 'package:ray_club_app/core/errors/app_exception.dart';
 import 'package:ray_club_app/utils/log_utils.dart';
-import 'package:flutter/foundation.dart';
 
 /// Chaves comuns para armazenamento seguro
 class SecureStorageKeys {
@@ -46,7 +53,7 @@ class SecureStorageKeys {
 
 /// Exceção específica para falhas de armazenamento seguro
 class SecureStorageException extends StorageException {
-  const SecureStorageException({
+  SecureStorageException({
     required String message,
     String? code,
     dynamic originalError,

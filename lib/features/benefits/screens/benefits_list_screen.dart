@@ -1,14 +1,21 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+// Project imports:
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/error_view.dart';
 import '../../../shared/widgets/loading_view.dart';
+import '../../../shared/bottom_navigation_bar.dart';
 import '../viewmodels/benefit_view_model.dart';
 import '../widgets/benefit_card.dart';
 
 /// Tela de listagem de benefícios disponíveis
+@RoutePage()
 class BenefitsListScreen extends ConsumerStatefulWidget {
   /// Construtor
   const BenefitsListScreen({super.key});
@@ -17,12 +24,16 @@ class BenefitsListScreen extends ConsumerStatefulWidget {
   ConsumerState<BenefitsListScreen> createState() => _BenefitsListScreenState();
 }
 
-class _BenefitsListScreenState extends ConsumerState<BenefitsListScreen> with SingleTickerProviderStateMixin {
-  TabController? _tabController;
+class _BenefitsListScreenState extends ConsumerState<BenefitsListScreen> with TickerProviderStateMixin {
+  late TabController _tabController;
+  bool _isTabControllerInitialized = false;
   
   @override
   void initState() {
     super.initState();
+    
+    // Inicializa com um valor padrão até que as categorias sejam carregadas
+    _tabController = TabController(length: 1, vsync: this);
     
     // Carrega os benefícios quando a tela é inicializada
     Future.microtask(() {
@@ -32,8 +43,35 @@ class _BenefitsListScreenState extends ConsumerState<BenefitsListScreen> with Si
   
   @override
   void dispose() {
-    _tabController?.dispose();
+    _tabController.dispose();
     super.dispose();
+  }
+  
+  void _updateTabController(int length) {
+    // Descarta o controlador antigo
+    if (_isTabControllerInitialized) {
+      _tabController.dispose();
+    }
+    
+    // Cria um novo controlador
+    _tabController = TabController(length: length, vsync: this);
+    _isTabControllerInitialized = true;
+    
+    // Adiciona listener para mudar a categoria quando a tab mudar
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        final state = ref.read(benefitViewModelProvider);
+        final index = _tabController.index;
+        if (index == 0) {
+          // Se for a primeira tab ("Todos"), limpa o filtro
+          ref.read(benefitViewModelProvider.notifier).filterByCategory(null);
+        } else if (state.categories.isNotEmpty && index - 1 < state.categories.length) {
+          // Caso contrário, filtra pela categoria correspondente
+          final category = state.categories[index - 1];
+          ref.read(benefitViewModelProvider.notifier).filterByCategory(category);
+        }
+      }
+    });
   }
   
   @override
@@ -41,27 +79,10 @@ class _BenefitsListScreenState extends ConsumerState<BenefitsListScreen> with Si
     // Obtém o estado do ViewModel
     final state = ref.watch(benefitViewModelProvider);
     
-    // Inicializa o TabController quando as categorias estiverem disponíveis
-    if (_tabController == null || _tabController!.length != state.categories.length + 1) {
-      _tabController = TabController(
-        length: state.categories.length + 1, // +1 para a tab "Todos"
-        vsync: this,
-      );
-      
-      // Adiciona listener para mudar a categoria quando a tab mudar
-      _tabController!.addListener(() {
-        if (!_tabController!.indexIsChanging) {
-          final index = _tabController!.index;
-          if (index == 0) {
-            // Se for a primeira tab ("Todos"), limpa o filtro
-            ref.read(benefitViewModelProvider.notifier).filterByCategory(null);
-          } else {
-            // Caso contrário, filtra pela categoria correspondente
-            final category = state.categories[index - 1];
-            ref.read(benefitViewModelProvider.notifier).filterByCategory(category);
-          }
-        }
-      });
+    // Atualiza o TabController quando as categorias estiverem disponíveis
+    if (state.categories.isNotEmpty && 
+        (!_isTabControllerInitialized || _tabController.length != state.categories.length + 1)) {
+      _updateTabController(state.categories.length + 1);
     }
     
     // Se estiver carregando, exibe indicador de carregamento
@@ -175,6 +196,7 @@ class _BenefitsListScreenState extends ConsumerState<BenefitsListScreen> with Si
               ),
             ],
           ),
+      bottomNavigationBar: const SharedBottomNavigationBar(currentIndex: 3),
     );
   }
   

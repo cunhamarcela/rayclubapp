@@ -25,28 +25,61 @@ O projeto segue uma organização por features, cada uma contendo:
 
 ```
 lib/
-├── core/                   # Funcionalidades centrais e utilitários
-│   ├── constants/          # Constantes da aplicação
-│   ├── errors/             # Classes de tratamento de erro  
-│   ├── providers/          # Providers globais
-│   └── themes/             # Definições de tema
-├── features/               # Módulos do aplicativo
-│   ├── auth/               # Autenticação
-│   ├── nutrition/          # Gerenciamento de nutrição
-│   │   ├── models/         # Modelos de dados
-│   │   ├── repositories/   # Acesso a dados
-│   │   ├── screens/        # Telas da UI
-│   │   ├── viewmodels/     # Lógica de negócios
-│   │   └── widgets/        # Componentes reutilizáveis
-│   └── [outras features]/  # Estrutura similar para cada feature
-├── services/               # Serviços compartilhados 
-│   ├── storage_service.dart
-│   ├── secure_storage_service.dart
-│   └── remote_logging_service.dart
-└── utils/                  # Utilitários gerais
-    ├── log_utils.dart
-    ├── performance_monitor.dart
-    └── input_validator.dart
+├── core/                      # Componentes essenciais da aplicação
+│   ├── components/            # Componentes base reutilizáveis
+│   ├── config/                # Configurações da aplicação
+│   ├── constants/             # Constantes da aplicação
+│   ├── di/                    # Injeção de dependências
+│   ├── errors/                # Sistema de tratamento de erro  
+│   ├── events/                # Sistema de eventos para comunicação
+│   ├── exceptions/            # Definições de exceções específicas
+│   ├── localization/          # Internacionalização
+│   ├── offline/               # Gerenciamento de estado offline
+│   ├── providers/             # Providers globais
+│   ├── router/                # Configuração de rotas com auto_route
+│   ├── services/              # Serviços core
+│   ├── tests/                 # Testes para componentes core
+│   ├── theme/                 # Definições de tema e estilos
+│   └── widgets/               # Widgets compartilhados
+│
+├── db/                        # Configuração e acesso ao banco de dados
+│
+├── features/                  # Recursos da aplicação organizados por domínio
+│   ├── app/                   # Configuração geral do aplicativo
+│   ├── auth/                  # Feature de autenticação
+│   ├── benefits/              # Feature de benefícios e cupons
+│   ├── challenges/            # Feature de desafios
+│   ├── home/                  # Feature da tela inicial
+│   ├── intro/                 # Feature de introdução ao app
+│   ├── nutrition/             # Feature de nutrição
+│   ├── profile/               # Feature de perfil do usuário
+│   ├── progress/              # Feature de acompanhamento de progresso
+│   └── workout/               # Feature de treinos
+│       ├── models/            # Modelos de dados para a feature
+│       ├── repositories/      # Repositórios para acesso a dados
+│       ├── screens/           # Telas da feature
+│       ├── viewmodels/        # ViewModels para gerenciar o estado da feature
+│       └── widgets/           # Widgets específicos da feature
+│
+├── services/                  # Serviços globais da aplicação
+│   ├── api_service.dart       # Serviço de API
+│   ├── auth_service.dart      # Serviço de autenticação
+│   ├── deep_link_service.dart # Serviço para manipulação de deep links
+│   ├── http_service.dart      # Cliente HTTP centralizado
+│   ├── notification_service.dart # Serviço de notificações
+│   ├── remote_logging_service.dart # Logging remoto
+│   ├── secure_storage_service.dart # Armazenamento seguro
+│   ├── storage_service.dart   # Interface de abstração para armazenamento
+│   ├── supabase_service.dart  # Wrapper para serviços do Supabase
+│   └── supabase_storage_service.dart # Implementação do storage com Supabase
+│
+├── shared/                    # Componentes compartilhados entre features
+│   └── widgets/               # Widgets reutilizáveis
+│
+├── utils/                     # Utilitários globais
+│   └── performance_monitor.dart # Monitoramento de performance
+│
+└── main.dart                  # Ponto de entrada da aplicação
 ```
 
 ### 2.2 Fluxo de Dados
@@ -93,6 +126,7 @@ class NetworkException extends AppException { ... }
 class AuthException extends AppException { ... }
 class ValidationException extends AppException { ... }
 class StorageException extends AppException { ... }
+class NotificationException extends AppException { ... }
 // ... outras exceções específicas
 ```
 
@@ -325,6 +359,9 @@ class SupabaseStorageService implements StorageService {
   final Map<StorageBucketType, String> _bucketNames = {
     StorageBucketType.profilePictures: dotenv.env['BUCKET_PROFILE_PICTURES'] ?? 'profile_pictures',
     StorageBucketType.mealImages: dotenv.env['BUCKET_MEAL_IMAGES'] ?? 'meal_images',
+    StorageBucketType.workoutImages: dotenv.env['BUCKET_WORKOUT_IMAGES'] ?? 'workout_images',
+    StorageBucketType.challengeImages: dotenv.env['BUCKET_CHALLENGE_IMAGES'] ?? 'challenge_images',
+    StorageBucketType.benefitImages: dotenv.env['BUCKET_BENEFIT_IMAGES'] ?? 'benefit_images',
     // ... outros buckets
   };
   
@@ -542,9 +579,192 @@ Future<String> uploadMealImage(String mealId, String localImagePath) async {
 - **Baixo Acoplamento**: Implementação não-intrusiva via wrappers
 - **Degradação Suave**: Falhas de telemetria não afetam funcionalidades
 
-## 7. Validação de Dados
+## 7. Suporte Offline
 
-### 7.1 Modelo Meal com Validação
+O aplicativo implementa suporte completo a operações offline com sincronização automática.
+
+### 7.1 Cache Local com Hive
+
+Utilizamos Hive para armazenamento local eficiente:
+
+```dart
+class CacheService {
+  late Box<dynamic> _cache;
+  
+  Future<void> initialize() async {
+    await Hive.initFlutter();
+    _cache = await Hive.openBox('app_cache');
+  }
+  
+  Future<void> put(String key, dynamic value) async {
+    await _cache.put(key, value);
+  }
+  
+  T? get<T>(String key) {
+    return _cache.get(key) as T?;
+  }
+  
+  Future<void> delete(String key) async {
+    await _cache.delete(key);
+  }
+  
+  Future<void> clear() async {
+    await _cache.clear();
+  }
+}
+```
+
+### 7.2 Sistema de Filas para Operações
+
+Implementamos um sistema de filas para operações que falham quando offline:
+
+```dart
+class OperationQueue {
+  final List<PendingOperation> _pendingOperations = [];
+  final CacheService _cacheService;
+  static const String _queueKey = 'operation_queue';
+  
+  OperationQueue(this._cacheService);
+  
+  Future<void> initialize() async {
+    final queue = _cacheService.get<List<dynamic>>(_queueKey);
+    if (queue != null) {
+      _pendingOperations.addAll(
+        queue.map((data) => PendingOperation.fromJson(data))
+      );
+    }
+  }
+  
+  void addOperation(PendingOperation operation) {
+    _pendingOperations.add(operation);
+    _saveQueue();
+  }
+  
+  Future<void> processQueue() async {
+    if (_pendingOperations.isEmpty) return;
+    
+    for (final operation in List.from(_pendingOperations)) {
+      try {
+        await operation.execute();
+        _pendingOperations.remove(operation);
+      } catch (e) {
+        // Falha ao processar, manter na fila
+        LogUtils.warning('Falha ao processar operação em fila: ${operation.type}', error: e);
+      }
+    }
+    
+    _saveQueue();
+  }
+  
+  Future<void> _saveQueue() async {
+    await _cacheService.put(
+      _queueKey, 
+      _pendingOperations.map((op) => op.toJson()).toList()
+    );
+  }
+}
+```
+
+### 7.3 Detecção de Conectividade
+
+Monitoramento contínuo do estado de conectividade:
+
+```dart
+class ConnectivityService {
+  final StreamController<ConnectivityStatus> _statusController = StreamController<ConnectivityStatus>.broadcast();
+  
+  Stream<ConnectivityStatus> get status => _statusController.stream;
+  ConnectivityStatus _lastStatus = ConnectivityStatus.unknown;
+  
+  ConnectivityService() {
+    Connectivity().onConnectivityChanged.listen((result) {
+      final status = _getStatusFromResult(result);
+      if (status != _lastStatus) {
+        _lastStatus = status;
+        _statusController.add(status);
+      }
+    });
+    
+    // Checar status inicial
+    _checkConnectivity();
+  }
+  
+  Future<void> _checkConnectivity() async {
+    final result = await Connectivity().checkConnectivity();
+    _lastStatus = _getStatusFromResult(result);
+    _statusController.add(_lastStatus);
+  }
+  
+  ConnectivityStatus _getStatusFromResult(ConnectivityResult result) {
+    switch (result) {
+      case ConnectivityResult.mobile:
+      case ConnectivityResult.wifi:
+      case ConnectivityResult.ethernet:
+        return ConnectivityStatus.online;
+      case ConnectivityResult.none:
+        return ConnectivityStatus.offline;
+      default:
+        return ConnectivityStatus.unknown;
+    }
+  }
+  
+  void dispose() {
+    _statusController.close();
+  }
+}
+
+enum ConnectivityStatus {
+  online,
+  offline,
+  unknown
+}
+```
+
+### 7.4 UI para Comunicar Estado Offline
+
+Widget de banner para informar o usuário sobre o status de conectividade:
+
+```dart
+class ConnectivityBanner extends ConsumerWidget {
+  const ConnectivityBanner({Key? key}) : super(key: key);
+  
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final connectivityStatus = ref.watch(connectivityStatusProvider);
+    
+    if (connectivityStatus == ConnectivityStatus.offline) {
+      return Container(
+        color: Colors.red.shade800,
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.wifi_off, color: Colors.white),
+            const SizedBox(width: 8.0),
+            const Text(
+              'Você está offline. Algumas funcionalidades podem estar limitadas.',
+              style: TextStyle(color: Colors.white),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    return const SizedBox.shrink();
+  }
+}
+```
+
+### 7.5 Justificativa da Implementação
+
+- **Experiência do Usuário**: Permite uso contínuo mesmo sem conexão
+- **Resiliente a Falhas**: Operações são armazenadas e reexecutadas quando online
+- **Transparência**: Comunicação clara sobre o status de conectividade
+- **Eficiência**: Uso de Hive para armazenamento local de alto desempenho
+
+## 8. Validação de Dados
+
+### 8.1 Modelo Meal com Validação
 
 Exemplo do modelo com documentação completa:
 
@@ -605,7 +825,7 @@ class Meal with _$Meal {
 }
 ```
 
-### 7.2 Validação no Repository
+### 8.2 Validação no Repository
 
 Implementação de validações no repositório:
 
@@ -667,16 +887,16 @@ Future<List<Meal>> getMealsByDateRange(DateTime startDate, DateTime endDate) asy
 }
 ```
 
-### 7.3 Motivações para Este Padrão de Validação
+### 8.3 Motivações para Este Padrão de Validação
 
 - **Defesa em Profundidade**: Validação em múltiplas camadas
 - **Mensagens Específicas**: Erros claros sobre problemas específicos
 - **Rastreabilidade**: Códigos de erro para diagnóstico
 - **Prevenção de Inconsistência**: Garantia de integridade dos dados
 
-## 8. Segurança SQL
+## 9. Segurança SQL
 
-### 8.1 Políticas de Acesso (RLS)
+### 9.1 Políticas de Acesso (RLS)
 
 Implementamos segurança em nível de linha (RLS) para controle de acesso:
 
@@ -712,7 +932,7 @@ CREATE POLICY meals_admin_select_policy ON meals
   );
 ```
 
-### 8.2 Funções SQL Seguras
+### 9.2 Funções SQL Seguras
 
 Corrigimos a função para buscar refeições com validação adequada:
 
@@ -746,16 +966,16 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 ```
 
-### 8.3 Justificativa da Abordagem de Segurança
+### 9.3 Justificativa da Abordagem de Segurança
 
 - **Defesa em Camadas**: Validação no app e no banco
 - **Isolamento de Dados**: Usuários só acessam seus próprios registros
 - **Privilégio Mínimo**: Funções com SECURITY DEFINER verificam permissões
 - **Prevenção de Injeção SQL**: Consultas parametrizadas em todo código
 
-## 9. Configuração e Inicialização
+## 10. Configuração e Inicialização
 
-### 9.1 Arquivo Main
+### 10.1 Arquivo Main
 
 Configuração global de serviços:
 
@@ -790,7 +1010,7 @@ void main() async {
 }
 ```
 
-### 9.2 Configuração de Ambiente
+### 10.2 Configuração de Ambiente
 
 Utilizamos variáveis de ambiente para configuração entre ambientes:
 
@@ -800,56 +1020,56 @@ final apiUrl = dotenv.env['API_URL'] ?? 'https://api.default-environment.com';
 final bucketName = dotenv.env['BUCKET_PROFILE_PICTURES'] ?? 'profile_pictures';
 ```
 
-### 9.3 Justificativa para Esta Abordagem
+### 10.3 Justificativa para Esta Abordagem
 
 - **Configuração Centralizada**: Inicialização de serviços em um único ponto
 - **Flexibilidade**: Fácil alteração de configurações entre ambientes
 - **Segurança**: Não há hardcoding de credenciais
 - **Testabilidade**: Injeção de dependências facilita testes
 
-## 10. Próximos Passos
+## 11. Próximos Passos
 
 De acordo com o checklist atualizado, as próximas melhorias incluem:
 
-### 10.1 Melhorias de UI
-- Implementação de formatação automática para números em formulários
-- Melhor feedback visual para erros de validação
-- Otimização de renderização de listas
+### 11.1 Testes para Componentes Compartilhados
+- Implementar testes para navegação inferior (bottom navigation)
+- Adicionar testes para componentes de cards e formulários 
+- Verificar comportamento responsivo em diferentes tamanhos de tela
 
-### 10.2 Experiência Offline
-- Implementação de cache local com Hive ou Isar
-- Sistema de fila para operações realizadas offline
-- Sincronização em background
+### 11.2 Otimização do Tamanho do App
+- Otimizar assets e remover código não utilizado
+- Configurar tree-shaking e code splitting
+- Reduzir tamanho das imagens sem comprometer qualidade
 
-### 10.3 Testes Automatizados
-- Testes unitários para todos os repositórios
-- Testes de widget para componentes críticos
-- Testes de integração para fluxos completos
+### 11.3 Configuração de Variantes de Build
+- Implementar configurações para ambientes development/staging/production
+- Criar sistema de feature flags para lançamento gradual de funcionalidades
+- Automatizar processo de build para diferentes ambientes via CI/CD
 
-## 11. Guia de Contribuição
+## 12. Guia de Contribuição
 
 Para contribuir com o Ray Club App, siga estas diretrizes:
 
-### 11.1 Padrões de Código
+### 12.1 Padrões de Código
 - Sempre siga o padrão MVVM com Riverpod
 - Nunca use setState(), apenas ViewModels e Providers
 - Todas as requisições HTTP devem usar Dio com tratamento de erros
 - Valide variáveis de ambiente pelo .env (não coloque chaves no código)
 
-### 11.2 Fluxo de Desenvolvimento
+### 12.2 Fluxo de Desenvolvimento
 1. Crie uma branch a partir da `develop`
 2. Implemente os testes antes ou junto com o código
 3. Verifique cobertura de testes (meta: >70%)
 4. Abra um Pull Request com descrição clara das mudanças
 
-### 11.3 Documentação
+### 12.3 Documentação
 - Documente classes e métodos relevantes
 - Mantenha o README atualizado
 - Atualize o checklist quando completar tarefas
 
-## 12. Manutenção desta Documentação
+## 13. Manutenção desta Documentação
 
-### 12.1 Protocolo de Atualização
+### 13.1 Protocolo de Atualização
 
 Este documento deve ser atualizado sempre que houver mudanças significativas no projeto. Como regra, deve-se atualizar a documentação:
 
@@ -858,13 +1078,13 @@ Este documento deve ser atualizado sempre que houver mudanças significativas no
 3. **Ao adicionar novas dependências**: Documentar a finalidade e o uso
 4. **Após correções críticas**: Documentar a natureza do problema e a solução
 
-### 12.2 Responsabilidades
+### 13.2 Responsabilidades
 
 - Todo desenvolvedor que implementar uma mudança significativa é responsável por também atualizar a documentação correspondente
 - O reviewer de Pull Requests deve verificar se a documentação foi devidamente atualizada
 - Em caso de dúvida, prefira documentar mais detalhadamente
 
-### 12.3 Script de Atualização Automática
+### 13.3 Script de Atualização Automática
 
 Para facilitar a manutenção da documentação, use o script fornecido:
 
@@ -879,14 +1099,19 @@ Este script:
 - Lembra você de atualizar as seções relevantes
 - Sugere um comando para fazer commit das alterações
 
-### 12.4 Changelog
+### 13.4 Changelog
 
 Para facilitar o acompanhamento de mudanças na documentação, mantenha esta seção com as atualizações recentes:
 
 | Data | Desenvolvedor | Descrição da Alteração |
 |------|---------------|------------------------|
-| 25/03/2025 | cunhamarcela | Descrição da mudança |
-| 25/03/2025 | cunhamarcela | Migração da feature Benefits para o padrão MVVM com Riverpod, incluindo modelos, repositórios, viewmodels e telas |
+| 27/03/2025 | cunhamarcela | Implementação do ConnectivityBanner e ConnectivityBannerWrapper para indicação de status offline |
+| 27/03/2025 | cunhamarcela | Implementação do sistema de cache estratégico para melhorar experiência offline |
+| 26/03/2025 | cunhamarcela | Implementação de classe AppStrings para centralizar strings e preparar para internacionalização |
+| 26/03/2025 | cunhamarcela | Otimização de renderização de listas e ScrollViews para melhor performance |
+| 25/03/2025 | cunhamarcela | Migração completa da feature Profile para o padrão MVVM com Riverpod |
+| 25/03/2025 | cunhamarcela | Remoção da feature Community do escopo do projeto |
+| 25/03/2025 | cunhamarcela | Migração da feature Benefits para o padrão MVVM com Riverpod, incluindo sistema de expiração de cupons |
 | 25/03/2025 | cunhamarcela | Migração da feature Workout para o padrão MVVM com Riverpod, incluindo modelos, repositórios, viewmodels e telas |
 | 25/03/2025 | cunhamarcela | Implementação das telas de autenticação com design minimalista |
 | 10/08/2023 | Equipe Inicial | Criação do documento |

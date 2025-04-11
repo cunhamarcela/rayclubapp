@@ -1,4 +1,7 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:ray_club_app/core/constants/app_colors.dart';
 
 /// Grid widget to display partners

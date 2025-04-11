@@ -1,5 +1,7 @@
+// Package imports:
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+// Project imports:
 import '../models/benefit.dart';
 import '../models/redeemed_benefit.dart';
 
@@ -35,6 +37,9 @@ class BenefitState with _$BenefitState {
     
     /// Mensagem de erro, se houver
     String? errorMessage,
+    
+    /// Mensagem de sucesso, se houver
+    String? successMessage,
     
     /// Indica se está em processo de resgate
     @Default(false) bool isRedeeming,

@@ -1,3 +1,4 @@
+// Project imports:
 import '../models/profile_model.dart';
 
 /// Interface para o repositório de perfil
@@ -7,6 +8,9 @@ abstract class ProfileRepository {
   
   /// Obtém um perfil de usuário por ID
   Future<Profile?> getProfileById(String userId);
+  
+  /// Obtém todos os perfis
+  Future<List<Profile>> getAllProfiles();
   
   /// Atualiza o perfil do usuário
   Future<Profile> updateProfile(Profile profile);
@@ -28,6 +32,12 @@ abstract class ProfileRepository {
   
   /// Adiciona pontos ao usuário
   Future<Profile> addPoints(String userId, int points);
+  
+  /// Atualiza o email do usuário
+  Future<void> updateEmail(String userId, String email);
+  
+  /// Envia link para redefinir senha
+  Future<void> sendPasswordResetLink(String email);
 }
 
 /// Implementação Mock do repositório de perfil para desenvolvimento
@@ -47,6 +57,10 @@ class MockProfileRepository implements ProfileRepository {
       bio: 'Entusiasta de fitness e bem-estar',
       goals: ['Perder peso', 'Melhorar condicionamento'],
       favoriteWorkoutIds: ['workout-1', 'workout-3'],
+      phone: '(11) 98765-4321',
+      gender: 'Feminino',
+      birthDate: DateTime(1990, 5, 15),
+      instagram: '@mariasilva',
     ),
     Profile(
       id: 'user-2',
@@ -61,6 +75,10 @@ class MockProfileRepository implements ProfileRepository {
       bio: 'Corredor amador',
       goals: ['Ganhar massa muscular'],
       favoriteWorkoutIds: ['workout-2'],
+      phone: '(21) 99876-5432',
+      gender: 'Masculino',
+      birthDate: DateTime(1988, 10, 20),
+      instagram: '@joaopereira',
     ),
   ];
   
@@ -90,6 +108,12 @@ class MockProfileRepository implements ProfileRepository {
     } catch (e) {
       return null;
     }
+  }
+  
+  @override
+  Future<List<Profile>> getAllProfiles() async {
+    await _simulateNetworkDelay();
+    return List.from(_mockProfiles);
   }
   
   @override
@@ -233,5 +257,34 @@ class MockProfileRepository implements ProfileRepository {
     }
     
     throw Exception('Perfil não encontrado');
+  }
+  
+  @override
+  Future<void> updateEmail(String userId, String email) async {
+    await _simulateNetworkDelay();
+    
+    final index = _mockProfiles.indexWhere((p) => p.id == userId);
+    if (index >= 0) {
+      _mockProfiles[index] = _mockProfiles[index].copyWith(
+        email: email,
+        updatedAt: DateTime.now(),
+      );
+      return;
+    }
+    
+    throw Exception('Perfil não encontrado');
+  }
+  
+  @override
+  Future<void> sendPasswordResetLink(String email) async {
+    await _simulateNetworkDelay();
+    
+    final userExists = _mockProfiles.any((profile) => profile.email == email);
+    if (!userExists) {
+      throw Exception('Email não encontrado');
+    }
+    
+    // Simulação de envio de email de redefinição
+    return;
   }
 } 

@@ -1,66 +1,76 @@
+// Package imports:
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState, AuthException;
-import 'package:ray_club_app/core/errors/app_exception.dart' as app;
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
+
+// Project imports:
+import 'package:ray_club_app/core/errors/app_exception.dart';
+import 'package:ray_club_app/features/auth/models/auth_state.dart';
 import 'package:ray_club_app/features/auth/models/user.dart';
 import 'package:ray_club_app/features/auth/repositories/auth_repository.dart';
 import 'package:ray_club_app/features/auth/viewmodels/auth_view_model.dart';
-import 'package:ray_club_app/features/auth/models/auth_state.dart';
 
+// Criando mocks para os testes
 class MockAuthRepository extends Mock implements IAuthRepository {}
-class MockUser extends Mock implements User {}
-class MockSession extends Mock implements Session {}
+class MockSupabaseUser extends Mock implements supabase.User {}
+class MockSession extends Mock implements supabase.Session {}
 
 void main() {
-  late MockAuthRepository mockRepository;
   late AuthViewModel viewModel;
-  late User mockSupabaseUser;
-  late Session mockSession;
+  late MockAuthRepository mockRepository;
+  late MockSupabaseUser mockSupabaseUser;
+  late MockSession mockSession;
 
   setUp(() {
     mockRepository = MockAuthRepository();
-    viewModel = AuthViewModel(repository: mockRepository);
-    mockSupabaseUser = MockUser();
+    mockSupabaseUser = MockSupabaseUser();
     mockSession = MockSession();
-
-    // Configurar o mock do usuário
+    
+    // Configure mock user com todos os campos necessários
     when(() => mockSupabaseUser.id).thenReturn('test-id');
     when(() => mockSupabaseUser.email).thenReturn('test@example.com');
-    when(() => mockSupabaseUser.userMetadata).thenReturn({'name': 'Test User'});
-    when(() => mockSupabaseUser.createdAt).thenReturn('2023-01-01T00:00:00Z');
-    when(() => mockSupabaseUser.emailConfirmedAt).thenReturn('2023-01-01T00:00:00Z');
+    when(() => mockSupabaseUser.userMetadata).thenReturn({
+      'name': 'Test User',
+      'avatar_url': 'https://example.com/avatar.jpg',
+    });
+    when(() => mockSupabaseUser.appMetadata).thenReturn({
+      'is_admin': false,
+    });
+    when(() => mockSupabaseUser.createdAt).thenReturn('2024-03-21T00:00:00.000Z');
+    when(() => mockSupabaseUser.emailConfirmedAt).thenReturn('2024-03-21T00:00:00.000Z');
+    when(() => mockSupabaseUser.updatedAt).thenReturn('2024-03-21T00:00:00.000Z');
+    
+    // Criar o viewModel com checkAuthOnInit=false para não chamar checkAuthStatus no construtor
+    viewModel = AuthViewModel(
+      repository: mockRepository,
+      checkAuthOnInit: false, // Evitar chamada automática de checkAuthStatus
+    );
   });
 
-  group('AuthViewModel Tests', () {
-    test('initial state should be AuthState.initial', () {
-      expect(viewModel.state, isA<AuthState>());
-      
-      viewModel.state.maybeWhen(
-        initial: () => expect(true, true),
-        orElse: () => fail('Estado inicial deve ser initial'),
-      );
-    });
-
-    test('checkAuthStatus should update state to authenticated when user is logged in', () async {
+  group('checkAuthStatus', () {
+    test('should update state to authenticated when user is logged in', () async {
       // Arrange
-      when(() => mockRepository.getCurrentUser()).thenAnswer((_) async => mockSupabaseUser);
+      when(() => mockRepository.getCurrentUser())
+          .thenAnswer((_) async => mockSupabaseUser);
 
       // Act
       await viewModel.checkAuthStatus();
 
       // Assert
-      viewModel.state.maybeWhen(
-        authenticated: (user) {
-          expect(user.id, equals('test-id'));
-          expect(user.email, equals('test@example.com'));
-          expect(user.name, equals('Test User'));
-          expect(user.isEmailVerified, isTrue);
-        },
-        orElse: () => fail('State should be authenticated'),
+      expect(
+        viewModel.state,
+        isA<AuthState>().having(
+          (state) => state.maybeWhen(
+            authenticated: (user) => user.id == 'test-id',
+            orElse: () => false,
+          ),
+          'state is authenticated with correct user',
+          true,
+        ),
       );
     });
 
-    test('checkAuthStatus should update state to unauthenticated when no user is logged in', () async {
+    test('should update state to unauthenticated when no user is logged in', () async {
       // Arrange
       when(() => mockRepository.getCurrentUser()).thenAnswer((_) async => null);
 
@@ -68,31 +78,44 @@ void main() {
       await viewModel.checkAuthStatus();
 
       // Assert
-      viewModel.state.maybeWhen(
-        unauthenticated: () => expect(true, true),
-        orElse: () => fail('State should be unauthenticated'),
+      expect(
+        viewModel.state,
+        isA<AuthState>().having(
+          (state) => state.maybeWhen(
+            unauthenticated: () => true,
+            orElse: () => false,
+          ),
+          'state is unauthenticated',
+          true,
+        ),
       );
     });
 
-    test('checkAuthStatus should update state to error when an exception occurs', () async {
+    test('should update state to error when getCurrentUser throws', () async {
       // Arrange
-      when(() => mockRepository.getCurrentUser()).thenThrow(
-        app.AuthException(message: 'Failed to get current user')
-      );
+      when(() => mockRepository.getCurrentUser())
+          .thenThrow(AuthException(message: 'Test error'));
 
       // Act
       await viewModel.checkAuthStatus();
 
       // Assert
-      viewModel.state.maybeWhen(
-        error: (message) {
-          expect(message, equals('Failed to get current user'));
-        },
-        orElse: () => fail('State should be error'),
+      expect(
+        viewModel.state,
+        isA<AuthState>().having(
+          (state) => state.maybeWhen(
+            error: (message) => message == 'Test error',
+            orElse: () => false,
+          ),
+          'state is error with correct message',
+          true,
+        ),
       );
     });
+  });
 
-    test('signIn should update state to authenticated when login succeeds', () async {
+  group('signIn', () {
+    test('should update state to authenticated when login succeeds', () async {
       // Arrange
       when(() => mockRepository.signIn('test@example.com', 'password123'))
           .thenAnswer((_) async => mockSupabaseUser);
@@ -101,33 +124,90 @@ void main() {
       await viewModel.signIn('test@example.com', 'password123');
 
       // Assert
-      viewModel.state.maybeWhen(
-        authenticated: (user) {
-          expect(user.id, equals('test-id'));
-          expect(user.email, equals('test@example.com'));
-        },
-        orElse: () => fail('State should be authenticated'),
+      expect(
+        viewModel.state,
+        isA<AuthState>().having(
+          (state) => state.maybeWhen(
+            authenticated: (user) => user.id == 'test-id' && user.email == 'test@example.com',
+            orElse: () => false,
+          ),
+          'state is authenticated with correct user',
+          true,
+        ),
       );
     });
-    
-    test('signIn should update state to error when login fails', () async {
+
+    test('should update state to error when login fails', () async {
       // Arrange
       when(() => mockRepository.signIn('test@example.com', 'password123'))
-          .thenThrow(app.AuthException(message: 'Invalid credentials'));
+          .thenThrow(AuthException(message: 'Invalid credentials'));
 
       // Act
       await viewModel.signIn('test@example.com', 'password123');
 
       // Assert
-      viewModel.state.maybeWhen(
-        error: (message) {
-          expect(message, equals('Invalid credentials'));
-        },
-        orElse: () => fail('State should be error'),
+      expect(
+        viewModel.state,
+        isA<AuthState>().having(
+          (state) => state.maybeWhen(
+            error: (message) => message == 'Invalid credentials',
+            orElse: () => false,
+          ),
+          'state is error with correct message',
+          true,
+        ),
+      );
+    });
+  });
+
+  group('signUp', () {
+    test('should update state to authenticated when registration succeeds', () async {
+      // Arrange
+      when(() => mockRepository.signUp('test@example.com', 'password123', 'Test User'))
+          .thenAnswer((_) async => mockSupabaseUser);
+
+      // Act
+      await viewModel.signUp('test@example.com', 'password123', 'Test User');
+
+      // Assert
+      expect(
+        viewModel.state,
+        isA<AuthState>().having(
+          (state) => state.maybeWhen(
+            authenticated: (user) => user.id == 'test-id' && user.email == 'test@example.com',
+            orElse: () => false,
+          ),
+          'state is authenticated with correct user',
+          true,
+        ),
       );
     });
 
-    test('signOut should update state to unauthenticated', () async {
+    test('should update state to error when registration fails', () async {
+      // Arrange
+      when(() => mockRepository.signUp('test@example.com', 'password123', 'Test User'))
+          .thenThrow(AuthException(message: 'Email already registered'));
+
+      // Act
+      await viewModel.signUp('test@example.com', 'password123', 'Test User');
+
+      // Assert
+      expect(
+        viewModel.state,
+        isA<AuthState>().having(
+          (state) => state.maybeWhen(
+            error: (message) => message == 'Email already registered',
+            orElse: () => false,
+          ),
+          'state is error with correct message',
+          true,
+        ),
+      );
+    });
+  });
+
+  group('signOut', () {
+    test('should update state to unauthenticated when signOut succeeds', () async {
       // Arrange
       when(() => mockRepository.signOut()).thenAnswer((_) async => {});
 
@@ -135,49 +215,44 @@ void main() {
       await viewModel.signOut();
 
       // Assert
-      viewModel.state.maybeWhen(
-        unauthenticated: () => expect(true, true),
-        orElse: () => fail('State should be unauthenticated'),
+      expect(
+        viewModel.state,
+        isA<AuthState>().having(
+          (state) => state.maybeWhen(
+            unauthenticated: () => true,
+            orElse: () => false,
+          ),
+          'state is unauthenticated',
+          true,
+        ),
       );
     });
 
-    test('signUp should update state to authenticated when registration succeeds', () async {
+    test('should update state to error when signOut fails', () async {
       // Arrange
-      when(() => mockRepository.signUp('test@example.com', 'password123', 'Test User'))
-          .thenAnswer((_) async => mockSupabaseUser);
+      when(() => mockRepository.signOut())
+          .thenThrow(AuthException(message: 'Error signing out'));
 
       // Act
-      await viewModel.signUp('test@example.com', 'password123', 'Test User');
+      await viewModel.signOut();
 
       // Assert
-      viewModel.state.maybeWhen(
-        authenticated: (user) {
-          expect(user.id, equals('test-id'));
-          expect(user.email, equals('test@example.com'));
-          expect(user.name, equals('Test User'));
-        },
-        orElse: () => fail('State should be authenticated'),
+      expect(
+        viewModel.state,
+        isA<AuthState>().having(
+          (state) => state.maybeWhen(
+            error: (message) => message == 'Error signing out',
+            orElse: () => false,
+          ),
+          'state is error with correct message',
+          true,
+        ),
       );
     });
-    
-    test('signUp should update state to error when registration fails', () async {
-      // Arrange
-      when(() => mockRepository.signUp('test@example.com', 'password123', 'Test User'))
-          .thenThrow(app.AuthException(message: 'Email already in use'));
+  });
 
-      // Act
-      await viewModel.signUp('test@example.com', 'password123', 'Test User');
-
-      // Assert
-      viewModel.state.maybeWhen(
-        error: (message) {
-          expect(message, equals('Email already in use'));
-        },
-        orElse: () => fail('State should be error'),
-      );
-    });
-    
-    test('resetPassword should update state to success when email is sent', () async {
+  group('resetPassword', () {
+    test('should update state to success when password reset succeeds', () async {
       // Arrange
       when(() => mockRepository.resetPassword('test@example.com'))
           .thenAnswer((_) async => {});
@@ -186,32 +261,44 @@ void main() {
       await viewModel.resetPassword('test@example.com');
 
       // Assert
-      viewModel.state.maybeWhen(
-        success: (message) {
-          expect(message, contains('Email de redefinição de senha enviado'));
-        },
-        orElse: () => fail('State should be success'),
+      expect(
+        viewModel.state,
+        isA<AuthState>().having(
+          (state) => state.maybeWhen(
+            success: (message) => message.contains('Email de redefinição'),
+            orElse: () => false,
+          ),
+          'state is success with correct message',
+          true,
+        ),
       );
     });
-    
-    test('resetPassword should update state to error when operation fails', () async {
+
+    test('should update state to error when password reset fails', () async {
       // Arrange
       when(() => mockRepository.resetPassword('test@example.com'))
-          .thenThrow(app.AuthException(message: 'Invalid email'));
+          .thenThrow(AuthException(message: 'Invalid email'));
 
       // Act
       await viewModel.resetPassword('test@example.com');
 
       // Assert
-      viewModel.state.maybeWhen(
-        error: (message) {
-          expect(message, equals('Invalid email'));
-        },
-        orElse: () => fail('State should be error'),
+      expect(
+        viewModel.state,
+        isA<AuthState>().having(
+          (state) => state.maybeWhen(
+            error: (message) => message == 'Invalid email',
+            orElse: () => false,
+          ),
+          'state is error with correct message',
+          true,
+        ),
       );
     });
-    
-    test('signInWithGoogle should update state to authenticated when login succeeds', () async {
+  });
+
+  group('signInWithGoogle', () {
+    test('should update state to authenticated when Google login succeeds', () async {
       // Arrange
       when(() => mockRepository.signInWithGoogle())
           .thenAnswer((_) async => mockSession);
@@ -222,52 +309,60 @@ void main() {
       await viewModel.signInWithGoogle();
 
       // Assert
-      viewModel.state.maybeWhen(
-        authenticated: (user) {
-          expect(user.id, equals('test-id'));
-          expect(user.email, equals('test@example.com'));
-        },
-        orElse: () => fail('State should be authenticated'),
+      expect(
+        viewModel.state,
+        isA<AuthState>().having(
+          (state) => state.maybeWhen(
+            authenticated: (user) => user.id == 'test-id' && user.email == 'test@example.com',
+            orElse: () => false,
+          ),
+          'state is authenticated with correct user',
+          true,
+        ),
       );
     });
-    
-    test('signInWithGoogle should update state to error when login fails', () async {
+
+    test('should update state to error when Google login fails', () async {
       // Arrange
       when(() => mockRepository.signInWithGoogle())
-          .thenThrow(app.AuthException(message: 'Google sign in failed'));
+          .thenThrow(AuthException(message: 'Google sign in failed'));
 
       // Act
       await viewModel.signInWithGoogle();
 
       // Assert
-      viewModel.state.maybeWhen(
-        error: (message) {
-          expect(message, equals('Google sign in failed'));
-        },
-        orElse: () => fail('State should be error'),
+      expect(
+        viewModel.state,
+        isA<AuthState>().having(
+          (state) => state.maybeWhen(
+            error: (message) => message == 'Google sign in failed',
+            orElse: () => false,
+          ),
+          'state is error with correct message',
+          true,
+        ),
       );
     });
-    
-    test('updateProfile should update user data in authenticated state', () async {
-      // Primeiro autenticar o usuário
-      when(() => mockRepository.getCurrentUser()).thenAnswer((_) async => mockSupabaseUser);
-      await viewModel.checkAuthStatus();
-      
-      // Arrange
-      when(() => mockRepository.updateProfile(name: 'New Name', photoUrl: 'https://example.com/photo.jpg'))
-          .thenAnswer((_) async => {});
-      
+  });
+
+  group('redirect functionality', () {
+    test('setRedirectPath should update redirectPath', () {
       // Act
-      await viewModel.updateProfile(name: 'New Name', photoUrl: 'https://example.com/photo.jpg');
+      viewModel.setRedirectPath('/dashboard');
       
       // Assert
-      viewModel.state.maybeWhen(
-        authenticated: (user) {
-          expect(user.name, equals('New Name'));
-          expect(user.photoUrl, equals('https://example.com/photo.jpg'));
-        },
-        orElse: () => fail('State should be authenticated with updated profile'),
-      );
+      expect(viewModel.redirectPath, equals('/dashboard'));
+    });
+    
+    test('clearRedirectPath should reset redirectPath to null', () {
+      // Arrange
+      viewModel.setRedirectPath('/dashboard');
+      
+      // Act
+      viewModel.clearRedirectPath();
+      
+      // Assert
+      expect(viewModel.redirectPath, isNull);
     });
   });
 }

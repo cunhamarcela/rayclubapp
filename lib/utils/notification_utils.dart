@@ -1,3 +1,4 @@
+// Project imports:
 import '../models/notification.dart';
 
 /// Extensões e utilidades para trabalhar com notificações

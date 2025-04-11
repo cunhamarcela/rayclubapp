@@ -1,4 +1,7 @@
+// Package imports:
 import 'package:freezed_annotation/freezed_annotation.dart';
+
+// Project imports:
 import 'package:ray_club_app/features/workout/models/exercise_model.dart';
 
 part 'workout_section_model.freezed.dart';

@@ -1,10 +1,17 @@
+// Dart imports:
 import 'dart:convert';
+
+// Flutter imports:
+import 'package:flutter/foundation.dart';
+
+// Package imports:
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+// Project imports:
 import 'package:ray_club_app/core/di/base_service.dart';
 import 'package:ray_club_app/core/errors/app_exception.dart';
 import 'package:ray_club_app/utils/log_utils.dart';
-import 'package:flutter/foundation.dart';
 
 /// Serviço responsável por enviar logs para um serviço remoto
 class RemoteLoggingService implements BaseService {
@@ -215,7 +222,7 @@ class RemoteLoggingService implements BaseService {
   String _getSeverityFromError(Object? error) {
     if (error is AppException) {
       if (error is NetworkException) return 'warning';
-      if (error is AuthException) return 'warning';
+      if (error is AppAuthException) return 'warning';
       if (error is StorageException) return 'warning';
       if (error is ValidationException) return 'info';
       return 'error';

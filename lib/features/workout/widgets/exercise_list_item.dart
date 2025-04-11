@@ -1,4 +1,7 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:ray_club_app/core/theme/app_colors.dart';
 import 'package:ray_club_app/core/theme/app_typography.dart';
 import 'package:ray_club_app/features/workout/models/exercise_model.dart';

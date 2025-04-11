@@ -1,4 +1,7 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:ray_club_app/core/constants/app_colors.dart';
 
 void showRegisterExerciseSheet(BuildContext context) {
@@ -172,11 +175,51 @@ class _RegisterExerciseSheetState extends State<RegisterExerciseSheet> {
                     ),
                     const SizedBox(height: 20),
                     
-                    // Campos adicionais
-                    _buildLabel('Notas adicionais (opcional)'),
-                    TextFormField(
-                      decoration: _inputDecoration('Ex: Aumentei a carga em 5kg...'),
-                      maxLines: 3,
+                    // Substituir notas por upload de imagem
+                    _buildLabel('Imagem do treino (opcional)'),
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: () {
+                        // Em um app real, usaríamos image_picker
+                        setState(() {
+                          // Simulação de seleção
+                        });
+                      },
+                      child: Container(
+                        height: 120,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.add_a_photo,
+                              size: 40,
+                              color: Colors.grey.shade400,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Toque para adicionar uma foto',
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Registre visualmente seu progresso',
+                              style: TextStyle(
+                                color: Colors.grey.shade500,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 25),
                     

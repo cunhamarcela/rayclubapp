@@ -1,4 +1,7 @@
+// Package imports:
 import 'package:flutter_test/flutter_test.dart';
+
+// Project imports:
 import 'package:ray_club_app/utils/form_validator.dart';
 
 void main() {
@@ -174,7 +177,7 @@ void main() {
         
         expect(sanitized['nome'], 'João alert("xss")');
         expect(sanitized['idade'], 30);
-        expect(sanitized['email'], 'joao@exemplo.com alert(1)');
+        expect(sanitized['email'], 'joao@exemplo.com ');
       });
     });
   });

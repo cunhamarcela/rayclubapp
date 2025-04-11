@@ -1,10 +1,19 @@
+// Dart imports:
 import 'dart:async';
 import 'dart:convert';
+
+// Flutter imports:
 import 'package:flutter/foundation.dart';
+
+// Package imports:
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../errors/app_exception.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+// Project imports:
 import '../../utils/log_utils.dart';
+import '../errors/app_exception.dart';
 
 /// Tipos de operações que podem ser armazenadas
 enum OperationType {
@@ -254,14 +263,13 @@ class OfflineOperationQueue {
   
   /// Processa uma operação específica
   Future<void> _processOperation(OfflineOperation operation) async {
-    // Esta implementação deve ser estendida para lidar com diferentes entidades e tipos de operações
-    // Por enquanto, vamos usar um handler genérico
-    
     // Aqui você registraria handlers para diferentes entidades
-    final handlers = <String, Function(OfflineOperation)>{
+    final handlers = <String, Future<void> Function(OfflineOperation)>{
       'workouts': _processWorkoutOperation,
       'nutrition': _processNutritionOperation,
       'benefits': _processBenefitOperation,
+      'challenges': _processChallengeOperation,
+      'profile': _processProfileOperation,
       // Adicione outros handlers conforme necessário
     };
     
@@ -279,50 +287,192 @@ class OfflineOperationQueue {
   
   // Handlers específicos para cada entidade
   Future<void> _processWorkoutOperation(OfflineOperation operation) async {
-    // Implementação para operações com treinos
-    // Em um ambiente real, você chamaria o repositório de treinos
-    
-    // Exemplo:
-    // final workoutRepository = WorkoutRepository();
-    // switch (operation.type) {
-    //   case OperationType.create:
-    //     await workoutRepository.createWorkout(Workout.fromJson(operation.data));
-    //     break;
-    //   case OperationType.update:
-    //     await workoutRepository.updateWorkout(Workout.fromJson(operation.data));
-    //     break;
-    //   case OperationType.delete:
-    //     await workoutRepository.deleteWorkout(operation.data['id']);
-    //     break;
-    // }
-    
-    // Por enquanto, apenas simula o processamento
-    await Future.delayed(const Duration(milliseconds: 500));
-    LogUtils.debug(
-      'Processada operação offline para treinos',
-      tag: 'OfflineOperationQueue',
-      data: {'id': operation.id, 'type': operation.type.toString()},
-    );
+    // Aqui seria a implementação real usando o repositório
+    // Por exemplo:
+    try {
+      final supabase = Supabase.instance.client;
+      
+      switch (operation.type) {
+        case OperationType.create:
+          await supabase.from('user_workouts').insert(operation.data);
+          break;
+        case OperationType.update:
+          await supabase.from('user_workouts')
+              .update(operation.data)
+              .eq('id', operation.data['id']);
+          break;
+        case OperationType.delete:
+          await supabase.from('user_workouts')
+              .delete()
+              .eq('id', operation.data['id']);
+          break;
+      }
+      
+      LogUtils.debug(
+        'Processada operação offline para treinos',
+        tag: 'OfflineOperationQueue',
+        data: {'id': operation.id, 'type': operation.type.toString()},
+      );
+    } catch (e, stackTrace) {
+      LogUtils.error(
+        'Erro ao processar operação offline para treinos',
+        tag: 'OfflineOperationQueue',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
   }
   
   Future<void> _processNutritionOperation(OfflineOperation operation) async {
-    // Implementação para operações com nutrição
-    await Future.delayed(const Duration(milliseconds: 500));
-    LogUtils.debug(
-      'Processada operação offline para nutrição',
-      tag: 'OfflineOperationQueue',
-      data: {'id': operation.id, 'type': operation.type.toString()},
-    );
+    try {
+      final supabase = Supabase.instance.client;
+      
+      switch (operation.type) {
+        case OperationType.create:
+          await supabase.from('meals').insert(operation.data);
+          break;
+        case OperationType.update:
+          await supabase.from('meals')
+              .update(operation.data)
+              .eq('id', operation.data['id']);
+          break;
+        case OperationType.delete:
+          await supabase.from('meals')
+              .delete()
+              .eq('id', operation.data['id']);
+          break;
+      }
+      
+      LogUtils.debug(
+        'Processada operação offline para nutrição',
+        tag: 'OfflineOperationQueue',
+        data: {'id': operation.id, 'type': operation.type.toString()},
+      );
+    } catch (e, stackTrace) {
+      LogUtils.error(
+        'Erro ao processar operação offline para nutrição',
+        tag: 'OfflineOperationQueue',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
   }
   
   Future<void> _processBenefitOperation(OfflineOperation operation) async {
-    // Implementação para operações com benefícios
-    await Future.delayed(const Duration(milliseconds: 500));
-    LogUtils.debug(
-      'Processada operação offline para benefícios',
-      tag: 'OfflineOperationQueue',
-      data: {'id': operation.id, 'type': operation.type.toString()},
-    );
+    try {
+      final supabase = Supabase.instance.client;
+      
+      switch (operation.type) {
+        case OperationType.create:
+          await supabase.from('redeemed_benefits').insert(operation.data);
+          break;
+        case OperationType.update:
+          await supabase.from('redeemed_benefits')
+              .update(operation.data)
+              .eq('id', operation.data['id']);
+          break;
+        case OperationType.delete:
+          // Normalmente não permitimos excluir benefícios resgatados
+          throw AppException(
+            message: 'Operação não suportada para benefícios',
+            code: 'operation_not_supported',
+          );
+      }
+      
+      LogUtils.debug(
+        'Processada operação offline para benefícios',
+        tag: 'OfflineOperationQueue',
+        data: {'id': operation.id, 'type': operation.type.toString()},
+      );
+    } catch (e, stackTrace) {
+      LogUtils.error(
+        'Erro ao processar operação offline para benefícios',
+        tag: 'OfflineOperationQueue',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+  
+  Future<void> _processChallengeOperation(OfflineOperation operation) async {
+    try {
+      final supabase = Supabase.instance.client;
+      
+      switch (operation.type) {
+        case OperationType.create:
+          if (operation.data['entity_type'] == 'check_in') {
+            await supabase.from('challenge_check_ins').insert(operation.data);
+          } else if (operation.data['entity_type'] == 'participant') {
+            await supabase.from('challenge_participants').insert(operation.data);
+          }
+          break;
+        case OperationType.update:
+          if (operation.data['entity_type'] == 'progress') {
+            await supabase.from('challenge_progress')
+                .update(operation.data)
+                .eq('id', operation.data['id']);
+          }
+          break;
+        case OperationType.delete:
+          if (operation.data['entity_type'] == 'participant') {
+            await supabase.from('challenge_participants')
+                .delete()
+                .eq('id', operation.data['id']);
+          }
+          break;
+      }
+      
+      LogUtils.debug(
+        'Processada operação offline para desafios',
+        tag: 'OfflineOperationQueue',
+        data: {'id': operation.id, 'type': operation.type.toString()},
+      );
+    } catch (e, stackTrace) {
+      LogUtils.error(
+        'Erro ao processar operação offline para desafios',
+        tag: 'OfflineOperationQueue',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+  
+  Future<void> _processProfileOperation(OfflineOperation operation) async {
+    try {
+      final supabase = Supabase.instance.client;
+      
+      switch (operation.type) {
+        case OperationType.update:
+          await supabase.from('profiles')
+              .update(operation.data)
+              .eq('id', operation.data['id']);
+          break;
+        case OperationType.create:
+        case OperationType.delete:
+          throw AppException(
+            message: 'Operação não suportada para perfis',
+            code: 'operation_not_supported',
+          );
+      }
+      
+      LogUtils.debug(
+        'Processada operação offline para perfil',
+        tag: 'OfflineOperationQueue',
+        data: {'id': operation.id, 'type': operation.type.toString()},
+      );
+    } catch (e, stackTrace) {
+      LogUtils.error(
+        'Erro ao processar operação offline para perfil',
+        tag: 'OfflineOperationQueue',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
   }
   
   /// Carrega operações do armazenamento local
@@ -397,4 +547,25 @@ class OfflineOperationQueue {
     _isInitialized = false;
     LogUtils.debug('OfflineOperationQueue foi descartado', tag: 'OfflineOperationQueue');
   }
-} 
+}
+
+/// Provider para acessar o OfflineOperationQueue
+final offlineOperationQueueProvider = Provider<OfflineOperationQueue>((ref) {
+  final queue = OfflineOperationQueue();
+  ref.onDispose(() => queue.dispose());
+  
+  // Inicializar a fila automaticamente ao acessar o provider
+  Future.microtask(() async {
+    try {
+      await queue.initialize();
+    } catch (e) {
+      LogUtils.error(
+        'Erro ao inicializar OfflineOperationQueue via provider',
+        tag: 'OfflineOperationQueueProvider',
+        error: e,
+      );
+    }
+  });
+  
+  return queue;
+}); 

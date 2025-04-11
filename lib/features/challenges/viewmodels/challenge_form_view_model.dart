@@ -1,18 +1,26 @@
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// Project imports:
 import 'package:ray_club_app/core/errors/app_exception.dart';
+import '../../../core/providers/providers.dart';
+import '../../../features/auth/repositories/auth_repository.dart';
 import '../models/challenge.dart';
 import '../repositories/challenge_repository.dart';
 import 'challenge_form_state.dart';
 
 final challengeFormViewModelProvider = StateNotifierProvider.autoDispose<ChallengeFormViewModel, ChallengeFormState>((ref) {
   final repository = ref.watch(challengeRepositoryProvider);
-  return ChallengeFormViewModel(repository);
+  final authRepository = ref.watch(authRepositoryProvider);
+  return ChallengeFormViewModel(repository, authRepository);
 });
 
 class ChallengeFormViewModel extends StateNotifier<ChallengeFormState> {
   final ChallengeRepository _repository;
+  final IAuthRepository _authRepository;
 
-  ChallengeFormViewModel(this._repository) : super(ChallengeFormState.initial());
+  ChallengeFormViewModel(this._repository, this._authRepository) 
+      : super(ChallengeFormState.initial());
 
   // Carrega os detalhes de um desafio existente
   Future<void> loadChallenge(String challengeId) async {
@@ -104,12 +112,18 @@ class ChallengeFormViewModel extends StateNotifier<ChallengeFormState> {
     try {
       final imageUrl = state.imageUrl.isNotEmpty ? state.imageUrl : null;
       
+      // Obtém o usuário atual
+      final currentUser = await _authRepository.getCurrentUser();
+      if (currentUser == null) {
+        throw AppAuthException(message: 'Usuário não autenticado');
+      }
+      
       if (state.challenge != null) {
         // Atualiza o desafio existente
         final updatedChallenge = state.challenge!.copyWith(
           title: state.title,
           description: state.description,
-          reward: reward,
+          points: reward,
           imageUrl: imageUrl,
           startDate: state.startDate,
           endDate: state.endDate,
@@ -123,13 +137,14 @@ class ChallengeFormViewModel extends StateNotifier<ChallengeFormState> {
           id: '', // Será gerado pelo repositório
           title: state.title,
           description: state.description,
-          reward: reward,
+          points: reward,
           imageUrl: imageUrl,
           startDate: state.startDate,
           endDate: state.endDate,
           participants: const [],
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
+          creatorId: currentUser.id,
         );
         
         await _repository.createChallenge(newChallenge);

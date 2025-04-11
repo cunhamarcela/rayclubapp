@@ -1,7 +1,12 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:intl/intl.dart';
+
+// Project imports:
 import 'package:ray_club_app/core/constants/app_colors.dart';
 import 'package:ray_club_app/features/nutrition/models/meal.dart';
-import 'package:intl/intl.dart';
 
 /// Card para exibir informações de uma refeição
 class MealCard extends StatelessWidget {

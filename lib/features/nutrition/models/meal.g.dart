@@ -31,8 +31,8 @@ Map<String, dynamic> _$$MealImplToJson(_$MealImpl instance) =>
       'proteins': instance.proteins,
       'carbs': instance.carbs,
       'fats': instance.fats,
-      'notes': instance.notes,
-      'imageUrl': instance.imageUrl,
+      if (instance.notes case final value?) 'notes': value,
+      if (instance.imageUrl case final value?) 'imageUrl': value,
       'isFavorite': instance.isFavorite,
       'tags': instance.tags,
     };

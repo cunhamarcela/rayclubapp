@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -20,10 +22,48 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.rayclub.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>rayclub</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>https</string>
+		<string>tel</string>
+		<string>mailto</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>O Ray Club precisa de acesso à câmera para capturar sua foto de perfil, registrar seu progresso físico através de fotos "antes e depois" e digitalizar códigos QR para cupons e benefícios exclusivos.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>O Ray Club solicita sua localização apenas quando você deseja encontrar parceiros e academias próximas que oferecem benefícios exclusivos através do aplicativo.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>O Ray Club precisa de acesso à sua galeria de fotos para você selecionar uma foto de perfil e para salvar fotos do seu progresso físico. Você pode monitorar seu progresso e compartilhar suas conquistas com a comunidade.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>O Ray Club solicita permissão para coletar dados relacionados à sua atividade no aplicativo para melhorar sua experiência, personalizar treinos e apresentar conteúdo relevante. Seu identificador é anônimo e seus dados são protegidos.</string>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -41,9 +81,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
 </dict>
 </plist>

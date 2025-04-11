@@ -1,2 +1,15 @@
 #include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
 #include "Generated.xcconfig"
+
+// Habilitar otimizações para redução de tamanho
+ENABLE_BITCODE=NO
+DEAD_CODE_STRIPPING=YES
+STRIP_STYLE=all
+STRIP_SWIFT_SYMBOLS=YES
+COMPILER_INDEX_STORE_ENABLE=NO
+ENABLE_NS_ASSERTIONS=NO
+ENABLE_TESTABILITY=NO
+GCC_OPTIMIZATION_LEVEL=s
+SWIFT_OPTIMIZATION_LEVEL=-Osize
+DEBUG_INFORMATION_FORMAT=dwarf-with-dsym
+COPY_PHASE_STRIP=YES

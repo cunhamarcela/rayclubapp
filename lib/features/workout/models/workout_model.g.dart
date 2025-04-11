@@ -26,6 +26,10 @@ _$WorkoutImpl _$$WorkoutImplFromJson(Map<String, dynamic> json) =>
       updatedAt: json['updatedAt'] == null
           ? null
           : DateTime.parse(json['updatedAt'] as String),
+      exercises: (json['exercises'] as Map<String, dynamic>?)?.map(
+        (k, e) =>
+            MapEntry(k, (e as List<dynamic>).map((e) => e as String).toList()),
+      ),
     );
 
 Map<String, dynamic> _$$WorkoutImplToJson(_$WorkoutImpl instance) =>
@@ -33,15 +37,17 @@ Map<String, dynamic> _$$WorkoutImplToJson(_$WorkoutImpl instance) =>
       'id': instance.id,
       'title': instance.title,
       'description': instance.description,
-      'imageUrl': instance.imageUrl,
+      if (instance.imageUrl case final value?) 'imageUrl': value,
       'type': instance.type,
       'durationMinutes': instance.durationMinutes,
       'difficulty': instance.difficulty,
       'equipment': instance.equipment,
-      'sections': instance.sections,
+      'sections': instance.sections.map((e) => e.toJson()).toList(),
       'creatorId': instance.creatorId,
       'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt?.toIso8601String(),
+      if (instance.updatedAt?.toIso8601String() case final value?)
+        'updatedAt': value,
+      if (instance.exercises case final value?) 'exercises': value,
     };
 
 _$ExerciseImpl _$$ExerciseImplFromJson(Map<String, dynamic> json) =>
@@ -58,12 +64,12 @@ _$ExerciseImpl _$$ExerciseImplFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$$ExerciseImplToJson(_$ExerciseImpl instance) =>
     <String, dynamic>{
       'name': instance.name,
-      'description': instance.description,
+      if (instance.description case final value?) 'description': value,
       'sets': instance.sets,
       'reps': instance.reps,
       'restSeconds': instance.restSeconds,
-      'imageUrl': instance.imageUrl,
-      'videoUrl': instance.videoUrl,
+      if (instance.imageUrl case final value?) 'imageUrl': value,
+      if (instance.videoUrl case final value?) 'videoUrl': value,
     };
 
 _$WorkoutSectionImpl _$$WorkoutSectionImplFromJson(Map<String, dynamic> json) =>
@@ -78,13 +84,14 @@ Map<String, dynamic> _$$WorkoutSectionImplToJson(
         _$WorkoutSectionImpl instance) =>
     <String, dynamic>{
       'name': instance.name,
-      'exercises': instance.exercises,
+      'exercises': instance.exercises.map((e) => e.toJson()).toList(),
     };
 
 _$WorkoutFilterImpl _$$WorkoutFilterImplFromJson(Map<String, dynamic> json) =>
     _$WorkoutFilterImpl(
       category: json['category'] as String? ?? '',
       maxDuration: (json['maxDuration'] as num?)?.toInt() ?? 0,
+      minDuration: (json['minDuration'] as num?)?.toInt() ?? 0,
       difficulty: json['difficulty'] as String? ?? '',
     );
 
@@ -92,5 +99,6 @@ Map<String, dynamic> _$$WorkoutFilterImplToJson(_$WorkoutFilterImpl instance) =>
     <String, dynamic>{
       'category': instance.category,
       'maxDuration': instance.maxDuration,
+      'minDuration': instance.minDuration,
       'difficulty': instance.difficulty,
     };

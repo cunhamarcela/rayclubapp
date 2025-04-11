@@ -1,4 +1,7 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:ray_club_app/features/auth/screens/login_screen.dart';
 import 'package:ray_club_app/features/auth/screens/signup_screen.dart';
 

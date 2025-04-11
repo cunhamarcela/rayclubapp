@@ -1,4 +1,7 @@
+// Flutter imports:
 import 'package:flutter/foundation.dart';
+
+// Package imports:
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'profile_model.freezed.dart';
@@ -43,6 +46,18 @@ class Profile with _$Profile {
     
     /// IDs dos treinos favoritos do usuário
     @Default([]) List<String> favoriteWorkoutIds,
+    
+    /// Número de telefone do usuário
+    String? phone,
+    
+    /// Gênero do usuário
+    String? gender,
+    
+    /// Data de nascimento do usuário
+    DateTime? birthDate,
+    
+    /// Instagram do usuário
+    String? instagram,
   }) = _Profile;
   
   /// Cria uma instância de Profile a partir de JSON

@@ -56,6 +56,18 @@ mixin _$Profile {
   /// IDs dos treinos favoritos do usuário
   List<String> get favoriteWorkoutIds => throw _privateConstructorUsedError;
 
+  /// Número de telefone do usuário
+  String? get phone => throw _privateConstructorUsedError;
+
+  /// Gênero do usuário
+  String? get gender => throw _privateConstructorUsedError;
+
+  /// Data de nascimento do usuário
+  DateTime? get birthDate => throw _privateConstructorUsedError;
+
+  /// Instagram do usuário
+  String? get instagram => throw _privateConstructorUsedError;
+
   /// Serializes this Profile to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -82,7 +94,11 @@ abstract class $ProfileCopyWith<$Res> {
       DateTime? updatedAt,
       String? bio,
       List<String> goals,
-      List<String> favoriteWorkoutIds});
+      List<String> favoriteWorkoutIds,
+      String? phone,
+      String? gender,
+      DateTime? birthDate,
+      String? instagram});
 }
 
 /// @nodoc
@@ -112,6 +128,10 @@ class _$ProfileCopyWithImpl<$Res, $Val extends Profile>
     Object? bio = freezed,
     Object? goals = null,
     Object? favoriteWorkoutIds = null,
+    Object? phone = freezed,
+    Object? gender = freezed,
+    Object? birthDate = freezed,
+    Object? instagram = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -162,6 +182,22 @@ class _$ProfileCopyWithImpl<$Res, $Val extends Profile>
           ? _value.favoriteWorkoutIds
           : favoriteWorkoutIds // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      phone: freezed == phone
+          ? _value.phone
+          : phone // ignore: cast_nullable_to_non_nullable
+              as String?,
+      gender: freezed == gender
+          ? _value.gender
+          : gender // ignore: cast_nullable_to_non_nullable
+              as String?,
+      birthDate: freezed == birthDate
+          ? _value.birthDate
+          : birthDate // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      instagram: freezed == instagram
+          ? _value.instagram
+          : instagram // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -185,7 +221,11 @@ abstract class _$$ProfileImplCopyWith<$Res> implements $ProfileCopyWith<$Res> {
       DateTime? updatedAt,
       String? bio,
       List<String> goals,
-      List<String> favoriteWorkoutIds});
+      List<String> favoriteWorkoutIds,
+      String? phone,
+      String? gender,
+      DateTime? birthDate,
+      String? instagram});
 }
 
 /// @nodoc
@@ -213,6 +253,10 @@ class __$$ProfileImplCopyWithImpl<$Res>
     Object? bio = freezed,
     Object? goals = null,
     Object? favoriteWorkoutIds = null,
+    Object? phone = freezed,
+    Object? gender = freezed,
+    Object? birthDate = freezed,
+    Object? instagram = freezed,
   }) {
     return _then(_$ProfileImpl(
       id: null == id
@@ -263,6 +307,22 @@ class __$$ProfileImplCopyWithImpl<$Res>
           ? _value._favoriteWorkoutIds
           : favoriteWorkoutIds // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      phone: freezed == phone
+          ? _value.phone
+          : phone // ignore: cast_nullable_to_non_nullable
+              as String?,
+      gender: freezed == gender
+          ? _value.gender
+          : gender // ignore: cast_nullable_to_non_nullable
+              as String?,
+      birthDate: freezed == birthDate
+          ? _value.birthDate
+          : birthDate // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      instagram: freezed == instagram
+          ? _value.instagram
+          : instagram // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -282,7 +342,11 @@ class _$ProfileImpl with DiagnosticableTreeMixin implements _Profile {
       this.updatedAt,
       this.bio,
       final List<String> goals = const [],
-      final List<String> favoriteWorkoutIds = const []})
+      final List<String> favoriteWorkoutIds = const [],
+      this.phone,
+      this.gender,
+      this.birthDate,
+      this.instagram})
       : _goals = goals,
         _favoriteWorkoutIds = favoriteWorkoutIds;
 
@@ -357,9 +421,25 @@ class _$ProfileImpl with DiagnosticableTreeMixin implements _Profile {
     return EqualUnmodifiableListView(_favoriteWorkoutIds);
   }
 
+  /// Número de telefone do usuário
+  @override
+  final String? phone;
+
+  /// Gênero do usuário
+  @override
+  final String? gender;
+
+  /// Data de nascimento do usuário
+  @override
+  final DateTime? birthDate;
+
+  /// Instagram do usuário
+  @override
+  final String? instagram;
+
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'Profile(id: $id, name: $name, email: $email, photoUrl: $photoUrl, completedWorkouts: $completedWorkouts, streak: $streak, points: $points, createdAt: $createdAt, updatedAt: $updatedAt, bio: $bio, goals: $goals, favoriteWorkoutIds: $favoriteWorkoutIds)';
+    return 'Profile(id: $id, name: $name, email: $email, photoUrl: $photoUrl, completedWorkouts: $completedWorkouts, streak: $streak, points: $points, createdAt: $createdAt, updatedAt: $updatedAt, bio: $bio, goals: $goals, favoriteWorkoutIds: $favoriteWorkoutIds, phone: $phone, gender: $gender, birthDate: $birthDate, instagram: $instagram)';
   }
 
   @override
@@ -378,7 +458,11 @@ class _$ProfileImpl with DiagnosticableTreeMixin implements _Profile {
       ..add(DiagnosticsProperty('updatedAt', updatedAt))
       ..add(DiagnosticsProperty('bio', bio))
       ..add(DiagnosticsProperty('goals', goals))
-      ..add(DiagnosticsProperty('favoriteWorkoutIds', favoriteWorkoutIds));
+      ..add(DiagnosticsProperty('favoriteWorkoutIds', favoriteWorkoutIds))
+      ..add(DiagnosticsProperty('phone', phone))
+      ..add(DiagnosticsProperty('gender', gender))
+      ..add(DiagnosticsProperty('birthDate', birthDate))
+      ..add(DiagnosticsProperty('instagram', instagram));
   }
 
   @override
@@ -402,7 +486,13 @@ class _$ProfileImpl with DiagnosticableTreeMixin implements _Profile {
             (identical(other.bio, bio) || other.bio == bio) &&
             const DeepCollectionEquality().equals(other._goals, _goals) &&
             const DeepCollectionEquality()
-                .equals(other._favoriteWorkoutIds, _favoriteWorkoutIds));
+                .equals(other._favoriteWorkoutIds, _favoriteWorkoutIds) &&
+            (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.gender, gender) || other.gender == gender) &&
+            (identical(other.birthDate, birthDate) ||
+                other.birthDate == birthDate) &&
+            (identical(other.instagram, instagram) ||
+                other.instagram == instagram));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -420,7 +510,11 @@ class _$ProfileImpl with DiagnosticableTreeMixin implements _Profile {
       updatedAt,
       bio,
       const DeepCollectionEquality().hash(_goals),
-      const DeepCollectionEquality().hash(_favoriteWorkoutIds));
+      const DeepCollectionEquality().hash(_favoriteWorkoutIds),
+      phone,
+      gender,
+      birthDate,
+      instagram);
 
   /// Create a copy of Profile
   /// with the given fields replaced by the non-null parameter values.
@@ -451,7 +545,11 @@ abstract class _Profile implements Profile {
       final DateTime? updatedAt,
       final String? bio,
       final List<String> goals,
-      final List<String> favoriteWorkoutIds}) = _$ProfileImpl;
+      final List<String> favoriteWorkoutIds,
+      final String? phone,
+      final String? gender,
+      final DateTime? birthDate,
+      final String? instagram}) = _$ProfileImpl;
 
   factory _Profile.fromJson(Map<String, dynamic> json) = _$ProfileImpl.fromJson;
 
@@ -502,6 +600,22 @@ abstract class _Profile implements Profile {
   /// IDs dos treinos favoritos do usuário
   @override
   List<String> get favoriteWorkoutIds;
+
+  /// Número de telefone do usuário
+  @override
+  String? get phone;
+
+  /// Gênero do usuário
+  @override
+  String? get gender;
+
+  /// Data de nascimento do usuário
+  @override
+  DateTime? get birthDate;
+
+  /// Instagram do usuário
+  @override
+  String? get instagram;
 
   /// Create a copy of Profile
   /// with the given fields replaced by the non-null parameter values.

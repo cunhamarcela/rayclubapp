@@ -1,5 +1,8 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+// Flutter imports:
 import 'package:flutter/foundation.dart';
+
+// Package imports:
+import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'meal.freezed.dart';
 part 'meal.g.dart';

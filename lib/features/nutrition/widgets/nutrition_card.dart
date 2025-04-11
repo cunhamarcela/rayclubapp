@@ -1,7 +1,12 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:cached_network_image/cached_network_image.dart';
+
+// Project imports:
 import 'package:ray_club_app/core/constants/app_colors.dart';
-import 'package:ray_club_app/models/nutrition_item.dart';
+import 'package:ray_club_app/features/nutrition/models/nutrition_item.dart';
 
 /// Card para exibir um item de nutrição
 class NutritionCard extends StatelessWidget {

@@ -1,7 +1,12 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// Package imports:
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+
+// Project imports:
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/loading_view.dart';
 import '../viewmodels/challenge_form_view_model.dart';
@@ -122,7 +127,7 @@ class _ChallengeFormScreenState extends ConsumerState<ChallengeFormScreen> {
         // Se não houve erro, navega de volta
         final state = ref.read(challengeFormViewModelProvider);
         if (state.error == null && !state.isSaving) {
-          context.router.pop();
+          context.router.maybePop();
         }
       }
     } catch (e) {

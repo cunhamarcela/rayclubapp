@@ -1,16 +1,18 @@
+// Package imports:
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-class AppConfig {
-  static String get supabaseUrl => dotenv.env['SUPABASE_URL'] ?? '';
-  static String get supabaseAnonKey => dotenv.env['SUPABASE_ANON_KEY'] ?? '';
+import 'environment.dart';
 
-  static String get apiUrl => dotenv.env['API_URL'] ?? '';
+class AppConfig {
+  static String get supabaseUrl => EnvironmentManager.supabaseUrl;
+  static String get supabaseAnonKey => EnvironmentManager.supabaseAnonKey;
+
+  static String get apiUrl => EnvironmentManager.apiUrl;
   static String get apiVersion => dotenv.env['API_VERSION'] ?? 'v1';
 
   static String get appName => dotenv.env['APP_NAME'] ?? 'Ray Club';
   static String get appEnv => dotenv.env['APP_ENV'] ?? 'development';
-  static bool get debugMode =>
-      dotenv.env['DEBUG_MODE']?.toLowerCase() == 'true';
+  static bool get debugMode => EnvironmentManager.debugMode;
 
   // @deprecated Variáveis legadas que serão removidas em versões futuras.
   // Utilize os buckets específicos abaixo em vez dessas variáveis genéricas.
@@ -18,11 +20,11 @@ class AppConfig {
   static String get storageUrl => dotenv.env['STORAGE_URL'] ?? '';
   
   // Storage buckets
-  static String get workoutBucket => dotenv.env['STORAGE_WORKOUT_BUCKET'] ?? 'workout-images';
-  static String get profileBucket => dotenv.env['STORAGE_PROFILE_BUCKET'] ?? 'profile-images';
-  static String get nutritionBucket => dotenv.env['STORAGE_NUTRITION_BUCKET'] ?? 'nutrition-images';
-  static String get featuredBucket => dotenv.env['STORAGE_FEATURED_BUCKET'] ?? 'featured-images';
-  static String get challengeBucket => dotenv.env['STORAGE_CHALLENGE_BUCKET'] ?? 'challenge-media';
+  static String get workoutBucket => EnvironmentManager.workoutBucket;
+  static String get profileBucket => EnvironmentManager.profileBucket;
+  static String get nutritionBucket => EnvironmentManager.nutritionBucket;
+  static String get featuredBucket => EnvironmentManager.featuredBucket;
+  static String get challengeBucket => EnvironmentManager.challengeBucket;
 
   static bool get analyticsEnabled =>
       dotenv.env['ANALYTICS_ENABLED']?.toLowerCase() == 'true';
@@ -30,9 +32,28 @@ class AppConfig {
 
   static Future<void> initialize() async {
     await dotenv.load();
+    
+    // Configurar o ambiente com base na variável APP_ENV
+    final envName = dotenv.env['APP_ENV'] ?? 'development';
+    
+    switch (envName) {
+      case 'production':
+        EnvironmentManager.setEnvironment(Environment.production);
+        break;
+      case 'staging':
+        EnvironmentManager.setEnvironment(Environment.staging);
+        break;
+      default:
+        EnvironmentManager.setEnvironment(Environment.development);
+    }
+    
+    // Validar se o ambiente está corretamente configurado
+    if (!EnvironmentManager.validateEnvironment()) {
+      print('AVISO: Configuração de ambiente incompleta!');
+    }
   }
 
-  static bool get isProduction => appEnv == 'production';
-  static bool get isDevelopment => appEnv == 'development';
-  static bool get isStaging => appEnv == 'staging';
+  static bool get isProduction => EnvironmentManager.isProduction;
+  static bool get isDevelopment => EnvironmentManager.isDevelopment;
+  static bool get isStaging => EnvironmentManager.isStaging;
 }

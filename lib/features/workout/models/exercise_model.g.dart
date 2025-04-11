@@ -26,13 +26,13 @@ _$ExerciseImpl _$$ExerciseImplFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$$ExerciseImplToJson(_$ExerciseImpl instance) =>
     <String, dynamic>{
       'name': instance.name,
-      'description': instance.description,
+      if (instance.description case final value?) 'description': value,
       'instructions': instance.instructions,
       'sets': instance.sets,
       'repetitions': instance.repetitions,
       'duration': instance.duration,
       'restSeconds': instance.restSeconds,
-      'imageUrl': instance.imageUrl,
-      'videoUrl': instance.videoUrl,
+      if (instance.imageUrl case final value?) 'imageUrl': value,
+      if (instance.videoUrl case final value?) 'videoUrl': value,
       'targetMuscles': instance.targetMuscles,
     };

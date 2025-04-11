@@ -1,57 +1,174 @@
-/// Base exception class for all application exceptions
-/// All custom exceptions should extend this class
+/// Base class para todas as exceções do aplicativo.
+/// Todas as exceções específicas devem estender esta classe.
 class AppException implements Exception {
+  /// Mensagem de erro
   final String message;
-  final String? code;
-  final dynamic originalError;
+  
+  /// Erro original que causou esta exceção
+  final Object? originalError;
+  
+  /// Stack trace do erro
   final StackTrace? stackTrace;
-
+  
+  /// Código de erro opcional para identificação
+  final String? code;
+  
+  /// Construtor padrão
   const AppException({
     required this.message,
-    this.code,
     this.originalError,
     this.stackTrace,
+    this.code,
   });
-
+  
   @override
   String toString() {
-    return 'AppException: $message${code != null ? ' (Code: $code)' : ''}';
+    if (code != null) {
+      return 'AppException [$code]: $message';
+    }
+    return 'AppException: $message';
   }
 }
 
-/// Network related exceptions
+/// Exceção para erros de rede
 class NetworkException extends AppException {
-  const NetworkException({
+  /// Código de status HTTP, se disponível
+  final int? statusCode;
+  
+  /// Construtor padrão
+  NetworkException({
     required String message,
-    String? code,
-    dynamic originalError,
+    this.statusCode,
+    Object? originalError,
     StackTrace? stackTrace,
+    String? code,
   }) : super(
           message: message,
-          code: code,
           originalError: originalError,
           stackTrace: stackTrace,
+          code: code ?? 'NETWORK_ERROR',
+        );
+  
+  @override
+  String toString() {
+    if (statusCode != null) {
+      return 'NetworkException [$code, status: $statusCode]: $message';
+    }
+    return 'NetworkException [$code]: $message';
+  }
+}
+
+/// Exceção para erros de autenticação
+class AuthException extends AppException {
+  /// Construtor padrão
+  AuthException({
+    required String message,
+    Object? originalError,
+    StackTrace? stackTrace,
+    String? code,
+  }) : super(
+          message: message,
+          originalError: originalError,
+          stackTrace: stackTrace,
+          code: code ?? 'AUTH_ERROR',
+        );
+}
+
+/// Exceção para erros de armazenamento
+class StorageException extends AppException {
+  /// Construtor padrão
+  StorageException({
+    required String message,
+    Object? originalError,
+    StackTrace? stackTrace,
+    String? code,
+  }) : super(
+          message: message,
+          originalError: originalError,
+          stackTrace: stackTrace,
+          code: code ?? 'STORAGE_ERROR',
+        );
+}
+
+/// Exceção para erros de validação
+class ValidationException extends AppException {
+  /// Campo que falhou na validação
+  final String? field;
+  
+  /// Construtor padrão
+  ValidationException({
+    required String message,
+    this.field,
+    Object? originalError,
+    StackTrace? stackTrace,
+    String? code,
+  }) : super(
+          message: message,
+          originalError: originalError,
+          stackTrace: stackTrace,
+          code: code ?? 'VALIDATION_ERROR',
+        );
+  
+  @override
+  String toString() {
+    if (field != null) {
+      return 'ValidationException [$code, field: $field]: $message';
+    }
+    return 'ValidationException [$code]: $message';
+  }
+}
+
+/// Exceção para erros não tratados
+class UnexpectedException extends AppException {
+  /// Construtor padrão
+  UnexpectedException({
+    String? message,
+    Object? originalError,
+    StackTrace? stackTrace,
+    String? code,
+  }) : super(
+          message: message ?? 'Ocorreu um erro inesperado',
+          originalError: originalError,
+          stackTrace: stackTrace,
+          code: code ?? 'UNEXPECTED_ERROR',
+        );
+}
+
+/// Exceção para operações não suportadas
+class UnsupportedException extends AppException {
+  /// Construtor padrão
+  UnsupportedException({
+    required String message,
+    Object? originalError,
+    StackTrace? stackTrace,
+    String? code,
+  }) : super(
+          message: message,
+          originalError: originalError,
+          stackTrace: stackTrace,
+          code: code ?? 'UNSUPPORTED_OPERATION',
+        );
+}
+
+/// Exceção para operações de permissão negada
+class PermissionDeniedException extends AppException {
+  /// Construtor padrão
+  PermissionDeniedException({
+    required String message,
+    Object? originalError,
+    StackTrace? stackTrace,
+    String? code,
+  }) : super(
+          message: message,
+          originalError: originalError,
+          stackTrace: stackTrace,
+          code: code ?? 'PERMISSION_DENIED',
         );
 }
 
 /// Authentication related exceptions
-class AuthException extends AppException {
-  const AuthException({
-    required String message,
-    String? code,
-    dynamic originalError,
-    StackTrace? stackTrace,
-  }) : super(
-          message: message,
-          code: code,
-          originalError: originalError,
-          stackTrace: stackTrace,
-        );
-}
-
-/// Storage related exceptions
-class StorageException extends AppException {
-  const StorageException({
+class AppAuthException extends AppException {
+  const AppAuthException({
     required String message,
     String? code,
     dynamic originalError,
@@ -109,21 +226,6 @@ class NotFoundException extends AppException {
         );
 }
 
-/// Data validation related exceptions
-class ValidationException extends AppException {
-  const ValidationException({
-    required String message,
-    String? code,
-    dynamic originalError,
-    StackTrace? stackTrace,
-  }) : super(
-          message: message,
-          code: code,
-          originalError: originalError,
-          stackTrace: stackTrace,
-        );
-}
-
 /// Exception for features not implemented yet
 class NotImplementedException extends AppException {
   const NotImplementedException({
@@ -149,6 +251,21 @@ class FileValidationException extends AppException {
   }) : super(
           message: message,
           code: code ?? 'file_validation_error',
+          originalError: originalError,
+          stackTrace: stackTrace,
+        );
+}
+
+/// Unauthorized access exception
+class UnauthorizedException extends AppException {
+  const UnauthorizedException({
+    required String message,
+    String? code,
+    dynamic originalError,
+    StackTrace? stackTrace,
+  }) : super(
+          message: message,
+          code: code ?? 'unauthorized',
           originalError: originalError,
           stackTrace: stackTrace,
         );

@@ -29,11 +29,12 @@ Map<String, dynamic> _$$FeaturedContentImplToJson(
       'id': instance.id,
       'title': instance.title,
       'description': instance.description,
-      'category': instance.category,
+      'category': instance.category.toJson(),
       'icon': const IconDataConverter().toJson(instance.icon),
-      'imageUrl': instance.imageUrl,
-      'actionUrl': instance.actionUrl,
-      'publishedAt': instance.publishedAt?.toIso8601String(),
+      if (instance.imageUrl case final value?) 'imageUrl': value,
+      if (instance.actionUrl case final value?) 'actionUrl': value,
+      if (instance.publishedAt?.toIso8601String() case final value?)
+        'publishedAt': value,
       'isFeatured': instance.isFeatured,
     };
 
@@ -50,5 +51,5 @@ Map<String, dynamic> _$$ContentCategoryImplToJson(
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
-      'colorHex': instance.colorHex,
+      if (instance.colorHex case final value?) 'colorHex': value,
     };

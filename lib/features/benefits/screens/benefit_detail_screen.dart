@@ -1,6 +1,11 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+// Project imports:
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/error_view.dart';
@@ -8,6 +13,7 @@ import '../../../shared/widgets/loading_view.dart';
 import '../viewmodels/benefit_view_model.dart';
 
 /// Tela de detalhes de um benefício
+@RoutePage()
 class BenefitDetailScreen extends ConsumerWidget {
   /// Construtor
   const BenefitDetailScreen({super.key});
@@ -129,7 +135,6 @@ class BenefitDetailScreen extends ConsumerWidget {
                   ),
                   
                   // Parceiro
-                  if (benefit.partner != null && benefit.partner!.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Row(
@@ -141,7 +146,7 @@ class BenefitDetailScreen extends ConsumerWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          benefit.partner!,
+                          benefit.partner,
                           style: AppTypography.subtitle,
                         ),
                       ],
@@ -222,16 +227,15 @@ class BenefitDetailScreen extends ConsumerWidget {
                   _buildInfoItem(
                     icon: Icons.event,
                     title: 'Data de expiração',
-                    content: _formatDate(benefit.expirationDate!),
+                    content: _formatDate(benefit.expirationDate),
                   ),
                   
                   // Quantidade disponível
-                  if (benefit.availableQuantity != null)
                   _buildInfoItem(
                     icon: Icons.inventory_2_outlined,
                     title: 'Quantidade disponível',
                     content: '${benefit.availableQuantity}',
-                    isWarning: benefit.availableQuantity! < 5,
+                    isWarning: benefit.availableQuantity < 5,
                   ),
                   
                   // Código promocional

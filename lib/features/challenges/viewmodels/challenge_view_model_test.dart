@@ -1,13 +1,17 @@
+// Dart imports:
 import 'dart:async';
 
+// Package imports:
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+
+// Project imports:
 import 'package:ray_club_app/core/errors/app_exception.dart';
 import 'package:ray_club_app/features/challenges/models/challenge_model.dart';
 import 'package:ray_club_app/features/challenges/models/challenge_progress_model.dart';
 import 'package:ray_club_app/features/challenges/repositories/challenge_repository.dart';
-import 'package:ray_club_app/features/challenges/viewmodels/challenge_view_model.dart';
 import 'package:ray_club_app/features/challenges/viewmodels/challenge_state.dart';
+import 'package:ray_club_app/features/challenges/viewmodels/challenge_view_model.dart';
 
 // Mock para o repositório de desafios
 class MockChallengeRepository extends Mock implements ChallengeRepository {}

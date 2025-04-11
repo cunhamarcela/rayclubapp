@@ -1,45 +1,108 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ray_club_app/core/providers/providers.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+// Project imports:
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_empty_state.dart';
 import '../../../core/widgets/app_error_widget.dart';
 import '../../../core/widgets/app_loading.dart';
+import '../../../features/auth/repositories/auth_repository.dart';
 import '../../../features/profile/models/profile_model.dart';
 import '../models/challenge.dart';
 import '../viewmodels/challenge_view_model.dart';
+import '../viewmodels/challenge_group_view_model.dart';
 import '../viewmodels/invite_form_view_model.dart';
+import '../viewmodels/invite_form_state.dart';
 
 /// Tela para convidar usuários para um desafio
-class InviteUsersScreen extends ConsumerWidget {
+@RoutePage()
+class InviteUsersScreen extends ConsumerStatefulWidget {
   final String challengeId;
   final String challengeTitle;
-  final String currentUserId;
-  final String currentUserName;
+  final String? currentUserId;
+  final String? currentUserName;
 
+  const InviteUsersScreen({
+    Key? key,
+    this.challengeId = 'temp-id',
+    this.challengeTitle = 'Novo Desafio',
+    this.currentUserId,
+    this.currentUserName,
+  }) : super(key: key);
+
+  @override
+  ConsumerState<InviteUsersScreen> createState() => _InviteUsersScreenState();
+}
+
+class _InviteUsersScreenState extends ConsumerState<InviteUsersScreen> {
   /// Controlador para o campo de busca
   final TextEditingController _searchController = TextEditingController();
   
   /// ScrollController para detectar quando chegou ao final da lista
   final ScrollController _scrollController = ScrollController();
 
-  InviteUsersScreen({
-    Key? key,
-    required this.challengeId,
-    required this.challengeTitle,
-    required this.currentUserId,
-    required this.currentUserName,
-  }) : super(key: key);
-
+  String? _userId;
+  String? _userName;
+  
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Inicializa o ScrollController para carregar mais dados ao rolar
-    _initScrollController(ref);
-
-    // Obtém o estado do formulário de convites
-    final inviteFormState = ref.watch(inviteFormViewModelProvider);
+  void initState() {
+    super.initState();
+    // Inicializa o ScrollController
+    _initScrollController();
     
     // Carrega perfis quando a tela é construída pela primeira vez
-    _loadProfiles(ref);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(inviteFormViewModelProvider.notifier).loadProfiles();
+      _loadUserData();
+    });
+  }
+
+  /// Carrega os dados do usuário atual
+  Future<void> _loadUserData() async {
+    final authRepo = ref.read(authRepositoryProvider);
+    try {
+      final user = await authRepo.getCurrentUser();
+      if (user != null) {
+        setState(() {
+          _userId = widget.currentUserId ?? user.id;
+          _userName = widget.currentUserName ?? user.userMetadata?['name'] ?? 'Usuário';
+        });
+      } else {
+        // Falha ao obter usuário
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Falha ao carregar dados do usuário'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+  
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Obtém o estado do formulário de convites
+    final inviteFormState = ref.watch(inviteFormViewModelProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -49,40 +112,30 @@ class InviteUsersScreen extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          _buildSearchField(ref),
+          _buildSearchField(),
           _buildSelectedUsersList(inviteFormState.selectedUsers),
           Expanded(
-            child: _buildUsersList(context, ref, inviteFormState),
+            child: _buildUsersList(context, inviteFormState),
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomBar(context, ref, inviteFormState.selectedUsers),
+      bottomNavigationBar: _buildBottomBar(context, inviteFormState.selectedUsers),
     );
   }
 
   /// Inicializa o controlador de scroll
-  void _initScrollController(WidgetRef ref) {
-    if (!_scrollController.hasListeners) {
-      _scrollController.addListener(() {
-        if (_scrollController.position.pixels >= 
-            _scrollController.position.maxScrollExtent - 200) {
-          // Quando estamos próximos do final da lista, carrega mais dados
-          ref.read(inviteFormViewModelProvider.notifier).loadMoreProfiles();
-        }
-      });
-    }
-  }
-
-  /// Carrega os perfis na inicialização
-  void _loadProfiles(WidgetRef ref) {
-    // Carrega a lista de usuários ao iniciar a tela
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(inviteFormViewModelProvider.notifier).loadProfiles();
+  void _initScrollController() {
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >= 
+          _scrollController.position.maxScrollExtent - 200) {
+        // Quando estamos próximos do final da lista, carrega mais dados
+        ref.read(inviteFormViewModelProvider.notifier).loadMoreProfiles();
+      }
     });
   }
 
   /// Constrói o campo de busca
-  Widget _buildSearchField(WidgetRef ref) {
+  Widget _buildSearchField() {
     final inviteFormNotifier = ref.read(inviteFormViewModelProvider.notifier);
     final searchQuery = ref.watch(inviteFormViewModelProvider).searchQuery;
 
@@ -150,7 +203,7 @@ class InviteUsersScreen extends ConsumerWidget {
                 ),
                 label: Text(user.name ?? 'Usuário'),
                 deleteIcon: const Icon(Icons.close, size: 18),
-                onDeleted: () => _onUserSelected(user, ref),
+                onDeleted: () => _onUserSelected(user),
               );
             }).toList(),
           ),
@@ -161,7 +214,7 @@ class InviteUsersScreen extends ConsumerWidget {
   }
 
   /// Constrói a lista de usuários
-  Widget _buildUsersList(BuildContext context, WidgetRef ref, InviteFormState state) {
+  Widget _buildUsersList(BuildContext context, InviteFormState state) {
     if (state.errorMessage != null) {
       return AppErrorWidget(
         message: state.errorMessage!,
@@ -199,7 +252,7 @@ class InviteUsersScreen extends ConsumerWidget {
         if (index < state.paginatedProfiles.length) {
           final profile = state.paginatedProfiles[index];
           final isSelected = state.selectedUsers.any((u) => u.id == profile.id);
-          return _buildUserItem(profile, isSelected, ref);
+          return _buildUserItem(profile, isSelected);
         }
         
         return null;
@@ -208,9 +261,9 @@ class InviteUsersScreen extends ConsumerWidget {
   }
 
   /// Constrói um item de usuário
-  Widget _buildUserItem(Profile profile, bool isSelected, WidgetRef ref) {
+  Widget _buildUserItem(Profile profile, bool isSelected) {
     // Não mostrar o usuário atual na lista
-    if (profile.id == currentUserId) {
+    if (profile.id == _userId) {
       return const SizedBox.shrink();
     }
 
@@ -224,7 +277,7 @@ class InviteUsersScreen extends ConsumerWidget {
             : BorderSide.none,
       ),
       child: InkWell(
-        onTap: () => _onUserSelected(profile, ref),
+        onTap: () => _onUserSelected(profile),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(12.0),
@@ -266,7 +319,7 @@ class InviteUsersScreen extends ConsumerWidget {
               Checkbox(
                 value: isSelected,
                 activeColor: AppTheme.primaryColor,
-                onChanged: (_) => _onUserSelected(profile, ref),
+                onChanged: (_) => _onUserSelected(profile),
               ),
             ],
           ),
@@ -276,7 +329,7 @@ class InviteUsersScreen extends ConsumerWidget {
   }
 
   /// Constrói a barra inferior com botões de ação
-  Widget _buildBottomBar(BuildContext context, WidgetRef ref, List<Profile> selectedUsers) {
+  Widget _buildBottomBar(BuildContext context, List<Profile> selectedUsers) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -295,7 +348,7 @@ class InviteUsersScreen extends ConsumerWidget {
             child: ElevatedButton(
               onPressed: selectedUsers.isEmpty
                   ? null
-                  : () => _sendInvites(context, ref, selectedUsers),
+                  : () => _sendInvites(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryColor,
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -318,8 +371,20 @@ class InviteUsersScreen extends ConsumerWidget {
   }
 
   /// Envia convites para os usuários selecionados
-  void _sendInvites(BuildContext context, WidgetRef ref, List<Profile> selectedUsers) async {
-    final challengeViewModel = ref.read(challengeViewModelProvider.notifier);
+  void _sendInvites() async {
+    final selectedUsers = ref.read(inviteFormViewModelProvider).selectedUsers;
+    
+    if (selectedUsers.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Selecione pelo menos um usuário para convidar'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final challengeGroupViewModel = ref.read(challengeGroupViewModelProvider.notifier);
     
     // Mostrar diálogo de progresso
     showDialog(
@@ -340,29 +405,28 @@ class InviteUsersScreen extends ConsumerWidget {
     try {
       // Enviar convites para cada usuário selecionado
       for (final user in selectedUsers) {
-        await challengeViewModel.inviteUserToChallenge(
-          challengeId: challengeId, 
-          challengeTitle: challengeTitle,
-          inviterId: currentUserId,
-          inviterName: currentUserName,
-          inviteeId: user.id,
+        await challengeGroupViewModel.inviteUserToGroup(
+          widget.challengeId, // usando o challengeId como groupId 
+          _userId!,
+          user.id,
         );
       }
       
       // Fechar diálogo de progresso
       Navigator.of(context).pop();
       
-      // Mostrar mensagem de sucesso
+      // Mostrar confirmação
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Convites enviados com sucesso para ${selectedUsers.length} ${selectedUsers.length == 1 ? 'usuário' : 'usuários'}!',
-          ),
+          content: Text('${selectedUsers.length} convites enviados com sucesso!'),
           backgroundColor: Colors.green,
         ),
       );
       
-      // Voltar para a tela anterior
+      // Limpar seleção
+      ref.read(inviteFormViewModelProvider.notifier).clearSelectedUsers();
+      
+      // Voltar para tela anterior
       Navigator.of(context).pop();
     } catch (e) {
       // Fechar diálogo de progresso
@@ -379,7 +443,7 @@ class InviteUsersScreen extends ConsumerWidget {
   }
 
   /// Trata a seleção/desseleção de um usuário
-  void _onUserSelected(Profile profile, WidgetRef ref) {
+  void _onUserSelected(Profile profile) {
     ref.read(inviteFormViewModelProvider.notifier).toggleUserSelection(profile);
   }
 } 

@@ -11,7 +11,7 @@ _$BenefitImpl _$$BenefitImplFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       title: json['title'] as String,
       description: json['description'] as String,
-      imageUrl: json['imageUrl'] as String?,
+      imageUrl: json['imageUrl'] as String? ?? '',
       qrCodeUrl: json['qrCodeUrl'] as String?,
       expiresAt: json['expiresAt'] == null
           ? null
@@ -21,6 +21,13 @@ _$BenefitImpl _$$BenefitImplFromJson(Map<String, dynamic> json) =>
       type: $enumDecodeNullable(_$BenefitTypeEnumMap, json['type']) ??
           BenefitType.coupon,
       actionUrl: json['actionUrl'] as String?,
+      pointsRequired: (json['pointsRequired'] as num).toInt(),
+      expirationDate: DateTime.parse(json['expirationDate'] as String),
+      availableQuantity: (json['availableQuantity'] as num).toInt(),
+      termsAndConditions: json['termsAndConditions'] as String?,
+      isFeatured: json['isFeatured'] as bool? ?? false,
+      promoCode: json['promoCode'] as String?,
+      category: json['category'] as String? ?? '',
     );
 
 Map<String, dynamic> _$$BenefitImplToJson(_$BenefitImpl instance) =>
@@ -29,12 +36,21 @@ Map<String, dynamic> _$$BenefitImplToJson(_$BenefitImpl instance) =>
       'title': instance.title,
       'description': instance.description,
       'imageUrl': instance.imageUrl,
-      'qrCodeUrl': instance.qrCodeUrl,
-      'expiresAt': instance.expiresAt?.toIso8601String(),
+      if (instance.qrCodeUrl case final value?) 'qrCodeUrl': value,
+      if (instance.expiresAt?.toIso8601String() case final value?)
+        'expiresAt': value,
       'partner': instance.partner,
-      'terms': instance.terms,
+      if (instance.terms case final value?) 'terms': value,
       'type': _$BenefitTypeEnumMap[instance.type]!,
-      'actionUrl': instance.actionUrl,
+      if (instance.actionUrl case final value?) 'actionUrl': value,
+      'pointsRequired': instance.pointsRequired,
+      'expirationDate': instance.expirationDate.toIso8601String(),
+      'availableQuantity': instance.availableQuantity,
+      if (instance.termsAndConditions case final value?)
+        'termsAndConditions': value,
+      'isFeatured': instance.isFeatured,
+      if (instance.promoCode case final value?) 'promoCode': value,
+      'category': instance.category,
     };
 
 const _$BenefitTypeEnumMap = {

@@ -1,4 +1,7 @@
+// Package imports:
 import 'package:freezed_annotation/freezed_annotation.dart';
+
+// Project imports:
 import 'package:ray_club_app/features/workout/models/workout_section_model.dart';
 
 part 'workout_model.freezed.dart';
@@ -43,6 +46,11 @@ class Workout with _$Workout {
     
     /// Data da última atualização (opcional)
     DateTime? updatedAt,
+    
+    /// Mapa de exercícios por seção (para compatibilidade com testes)
+    /// A chave representa o nome da seção (ex: 'warmup', 'main', 'cooldown')
+    /// O valor é uma lista de nomes de exercícios
+    Map<String, List<String>>? exercises,
   }) = _Workout;
 
   /// Cria um Workout a partir de um mapa JSON
@@ -103,6 +111,9 @@ class WorkoutFilter with _$WorkoutFilter {
     
     /// Duração máxima em minutos (0 = sem filtro)
     @Default(0) int maxDuration,
+    
+    /// Duração mínima em minutos (usado para intervalos de duração)
+    @Default(0) int minDuration,
     
     /// Dificuldade selecionada (vazio = todas)
     @Default('') String difficulty,

@@ -1,15 +1,27 @@
+// Flutter imports:
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+// Package imports:
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+// Project imports:
 import '../../../core/errors/app_exception.dart';
+import '../../../core/providers/supabase_providers.dart';
 import '../models/profile_model.dart';
 import '../repositories/profile_repository.dart';
+import '../repositories/supabase_profile_repository.dart';
 import 'profile_state.dart';
 
 /// Provider para o repositório de perfil
 final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
-  // TODO: Em produção, substituir por implementação Supabase
-  return MockProfileRepository();
+  // Em ambiente de produção, usa a implementação Supabase
+  // Em desenvolvimento ou testes, pode usar o mock
+  final supabase = ref.watch(supabaseClientProvider);
+  return SupabaseProfileRepository(supabase);
+  
+  // Versão mock para desenvolvimento
+  // return MockProfileRepository();
 });
 
 /// Provider para o ViewModel de perfil
@@ -65,6 +77,10 @@ class ProfileViewModel extends StateNotifier<ProfileState> {
     String? name,
     String? bio,
     List<String>? goals,
+    String? phone,
+    String? gender,
+    DateTime? birthDate,
+    String? instagram,
   }) async {
     try {
       final currentProfile = state.profile;
@@ -80,6 +96,10 @@ class ProfileViewModel extends StateNotifier<ProfileState> {
           name: name ?? currentProfile.name,
           bio: bio ?? currentProfile.bio,
           goals: goals ?? currentProfile.goals,
+          phone: phone ?? currentProfile.phone,
+          gender: gender ?? currentProfile.gender,
+          birthDate: birthDate ?? currentProfile.birthDate,
+          instagram: instagram ?? currentProfile.instagram,
         ),
       );
       
@@ -87,6 +107,41 @@ class ProfileViewModel extends StateNotifier<ProfileState> {
     } catch (e, stackTrace) {
       final errorMessage = _handleError(e, stackTrace);
       state = ProfileState.error(errorMessage);
+    }
+  }
+  
+  /// Atualiza o email do usuário
+  Future<void> updateEmail(String email) async {
+    try {
+      final currentProfile = state.profile;
+      if (currentProfile == null) {
+        state = const ProfileState.error('Perfil não disponível para atualização');
+        return;
+      }
+      
+      state = ProfileState.updating(profile: currentProfile);
+      
+      await _repository.updateEmail(currentProfile.id, email);
+      
+      final updatedProfile = currentProfile.copyWith(
+        email: email,
+        updatedAt: DateTime.now(),
+      );
+      
+      state = ProfileState.loaded(profile: updatedProfile);
+    } catch (e, stackTrace) {
+      final errorMessage = _handleError(e, stackTrace);
+      state = ProfileState.error(errorMessage);
+    }
+  }
+  
+  /// Envia link para redefinição de senha
+  Future<void> sendPasswordResetLink(String email) async {
+    try {
+      await _repository.sendPasswordResetLink(email);
+    } catch (e, stackTrace) {
+      final errorMessage = _handleError(e, stackTrace);
+      throw Exception(errorMessage);
     }
   }
   

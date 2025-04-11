@@ -1,18 +1,29 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
+
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mockito/mockito.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+
+// Project imports:
+import 'package:ray_club_app/features/nutrition/models/nutrition_item.dart';
 import 'package:ray_club_app/features/nutrition/screens/nutrition_screen.dart';
-import 'package:ray_club_app/view_models/nutrition_view_model.dart';
-import 'package:ray_club_app/models/nutrition_item.dart';
+import 'package:ray_club_app/features/nutrition/viewmodels/nutrition_view_model.dart';
 
-class MockNutritionViewModel extends StateNotifier<NutritionState> with Mock {
-  MockNutritionViewModel() : super(const NutritionState());
+class MockNutritionViewModel extends NutritionViewModel with Mock {
+  MockNutritionViewModel() : super();
+  
+  @override
+  Future<void> loadNutritionItems() async {
+    // Mock implementation - não chama o super para evitar carregamento real
+  }
+  
+  @override
+  void filterByCategory(String category) {
+    // Mock implementation - não chama o super para evitar processamento real
+  }
 }
-
-final mockNutritionViewModelProvider = StateNotifierProvider<MockNutritionViewModel, NutritionState>((ref) {
-  return MockNutritionViewModel();
-});
 
 void main() {
   late MockNutritionViewModel mockViewModel;
@@ -27,7 +38,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          nutritionViewModelProvider.overrideWithProvider(mockNutritionViewModelProvider),
+          nutritionViewModelProvider.overrideWith((_) => mockViewModel),
         ],
         child: const MaterialApp(
           home: NutritionScreen(),
@@ -45,7 +56,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          nutritionViewModelProvider.overrideWithProvider(mockNutritionViewModelProvider),
+          nutritionViewModelProvider.overrideWith((_) => mockViewModel),
         ],
         child: const MaterialApp(
           home: NutritionScreen(),
@@ -90,7 +101,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          nutritionViewModelProvider.overrideWithProvider(mockNutritionViewModelProvider),
+          nutritionViewModelProvider.overrideWith((_) => mockViewModel),
         ],
         child: const MaterialApp(
           home: NutritionScreen(),

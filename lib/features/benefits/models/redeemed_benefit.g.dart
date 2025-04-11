@@ -36,11 +36,13 @@ Map<String, dynamic> _$$RedeemedBenefitImplToJson(
       'userId': instance.userId,
       'redeemedAt': instance.redeemedAt.toIso8601String(),
       'redemptionCode': instance.redemptionCode,
-      'expiresAt': instance.expiresAt?.toIso8601String(),
+      if (instance.expiresAt?.toIso8601String() case final value?)
+        'expiresAt': value,
       'status': _$RedemptionStatusEnumMap[instance.status]!,
-      'benefitSnapshot': instance.benefitSnapshot,
-      'additionalData': instance.additionalData,
-      'usedAt': instance.usedAt?.toIso8601String(),
+      if (instance.benefitSnapshot?.toJson() case final value?)
+        'benefitSnapshot': value,
+      if (instance.additionalData case final value?) 'additionalData': value,
+      if (instance.usedAt?.toIso8601String() case final value?) 'usedAt': value,
     };
 
 const _$RedemptionStatusEnumMap = {

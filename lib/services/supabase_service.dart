@@ -1,6 +1,9 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+// Dart imports:
 import 'dart:typed_data';
+
+// Package imports:
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Serviço para encapsular a funcionalidade do Supabase
 class SupabaseService {
@@ -73,7 +76,8 @@ class SupabaseService {
     final response = await client.rpc(function, params: params);
     
     if (response.error != null) {
-      throw Exception('Erro na chamada RPC: ${response.error!.message}');
+      final errorMessage = response.error?.message ?? 'Erro desconhecido na chamada RPC';
+      throw Exception('Erro na chamada RPC: $errorMessage');
     }
     
     return List<Map<String, dynamic>>.from(response.data as List);

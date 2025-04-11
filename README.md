@@ -27,6 +27,8 @@ O projeto contém vários arquivos de documentação que cobrem diferentes aspec
 - [Contexto](./CONTEXT.md) - Visão geral do aplicativo e suas funcionalidades
 - [Documentação Supabase](./docs/supabase_schema.sql) - Esquema do banco de dados Supabase
 - [Comunicação Entre Features](./lib/core/errors/README.md) - Como usar o sistema de comunicação entre features
+- [Guia de Resolução de Inconsistências](docs/RESOLUCAO_INCONSISTENCIAS.md)
+- [Exemplo de Implementação MVVM](docs/MVVM_EXEMPLO.md)
 
 ## Estrutura do Projeto
 
@@ -273,3 +275,46 @@ Para mais detalhes técnicos, consulte os arquivos:
 - `lib/features/auth/repositories/auth_repository.dart`
 - `lib/services/deep_link_service.dart`
 - `lib/features/auth/viewmodels/auth_view_model.dart`
+
+## Arquitetura MVVM
+
+A arquitetura MVVM (Model-View-ViewModel) separa as responsabilidades em:
+
+- **Model**: Representa os dados e regras de negócio
+- **View**: Interface de usuário (Widgets e Screens)
+- **ViewModel**: Intermedia a comunicação entre a View e o Model, gerencia o estado
+
+## Dependências Principais
+
+- [flutter_riverpod](https://pub.dev/packages/flutter_riverpod): Gerenciamento de estado
+- [freezed](https://pub.dev/packages/freezed): Geração de código para classes imutáveis
+- [auto_route](https://pub.dev/packages/auto_route): Navegação
+- [supabase](https://pub.dev/packages/supabase_flutter): Banco de dados e autenticação
+
+## Migração de Banco de Dados
+
+O projeto utiliza o [Supabase](https://supabase.io/) como backend. As migrações de banco de dados estão definidas no diretório `sql/`.
+
+## Executando o Projeto
+
+1. Clone o repositório
+2. Instale as dependências:
+```bash
+flutter pub get
+```
+3. Execute os geradores de código:
+```bash
+flutter pub run build_runner build --delete-conflicting-outputs
+```
+4. Execute o app:
+```bash
+flutter run
+```
+
+## Guia de Contribuição
+
+1. Familiarize-se com a [Resolução de Inconsistências](docs/RESOLUCAO_INCONSISTENCIAS.md)
+2. Siga o [Exemplo de Implementação MVVM](docs/MVVM_EXEMPLO.md) para novas features
+3. Criar testes unitários para ViewModels e Repositories
+4. Utilize HookConsumerWidget para as telas
+5. Faça o tratamento adequado de erros e estados de carregamento

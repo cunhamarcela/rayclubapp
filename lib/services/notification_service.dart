@@ -1,9 +1,14 @@
+// Dart imports:
 import 'dart:async';
+
+// Package imports:
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+// Project imports:
 import '../core/di/base_service.dart';
-import '../features/profile/models/notification_model.dart';
 import '../core/errors/app_exception.dart';
+import '../features/profile/models/notification_model.dart';
 
 /// Serviço para gerenciar notificações da aplicação
 class NotificationService implements BaseService {

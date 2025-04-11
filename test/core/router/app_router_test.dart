@@ -1,12 +1,17 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
+
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ray_club_app/core/router/app_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
+
+// Project imports:
 import 'package:ray_club_app/core/providers/providers.dart';
+import 'package:ray_club_app/core/router/app_router.dart';
 import 'package:ray_club_app/repositories/auth_repository.dart';
 import 'package:ray_club_app/repositories/user_repository.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 void main() {
   group('AppRouter', () {

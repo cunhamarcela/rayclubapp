@@ -1,4 +1,7 @@
+// Package imports:
 import 'package:freezed_annotation/freezed_annotation.dart';
+
+// Project imports:
 import '../models/profile_model.dart';
 
 part 'profile_state.freezed.dart';

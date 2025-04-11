@@ -1,6 +1,12 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+// Package imports:
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// Project imports:
 import 'package:ray_club_app/core/constants/app_colors.dart';
 import 'package:ray_club_app/features/home/models/featured_content.dart';
 import 'package:ray_club_app/features/home/viewmodels/featured_content_view_model.dart';
@@ -17,12 +23,16 @@ class FeaturedContentDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Carregar o conteúdo específico pelo ID
-    _loadContent(ref);
-
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (context.mounted) {
+        ref.read(featuredContentViewModelProvider.notifier).selectContentById(contentId);
+      }
+    });
+    
     // Observar o estado
     final state = ref.watch(featuredContentViewModelProvider);
     final content = state.selectedContent;
-
+    
     return Scaffold(
       appBar: AppBar(
         title: Text(content?.title ?? 'Carregando...'),
@@ -30,11 +40,11 @@ class FeaturedContentDetailScreen extends ConsumerWidget {
         elevation: 0,
         iconTheme: IconThemeData(color: AppColors.textDark),
       ),
-      body: _buildBody(context, state),
+      body: _buildContent(context, ref, state),
     );
   }
 
-  Widget _buildBody(BuildContext context, FeaturedContentState state) {
+  Widget _buildContent(BuildContext context, WidgetRef ref, FeaturedContentState state) {
     // Exibir loader durante o carregamento
     if (state.isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -51,9 +61,9 @@ class FeaturedContentDetailScreen extends ConsumerWidget {
               Text('Erro ao carregar conteúdo: ${state.error}'),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () => _loadContent(
-                  ProviderScope.containerOf(context).read(featuredContentViewModelProvider.notifier),
-                ),
+                onPressed: () {
+                  ref.read(featuredContentViewModelProvider.notifier).selectContentById(contentId);
+                },
                 child: const Text('Tentar novamente'),
               ),
             ],
@@ -100,7 +110,7 @@ class FeaturedContentDetailScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: content.category.color.withOpacity(0.1),
+                    color: (content.category.color ?? Colors.blue).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -108,7 +118,7 @@ class FeaturedContentDetailScreen extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: content.category.color,
+                      color: content.category.color ?? Colors.blue,
                     ),
                   ),
                 ),
@@ -161,8 +171,24 @@ class FeaturedContentDetailScreen extends ConsumerWidget {
                 // Botão de ação (se tiver URL)
                 if (content.actionUrl != null)
                   ElevatedButton(
-                    onPressed: () {
-                      // TODO: Implementar navegação para o link
+                    onPressed: () async {
+                      if (content.actionUrl != null) {
+                        final uri = Uri.parse(content.actionUrl!);
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        } else {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Não foi possível abrir o link'),
+                              ),
+                            );
+                          }
+                        }
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
@@ -183,15 +209,18 @@ class FeaturedContentDetailScreen extends ConsumerWidget {
   }
 
   Widget _buildHeaderIcon(FeaturedContent content) {
+    // Definir uma cor padrão caso category.color seja nulo
+    final categoryColor = content.category.color ?? Colors.blue;
+    
     return Container(
       width: double.infinity,
       height: 150,
-      color: content.category.color.withOpacity(0.1),
+      color: categoryColor.withOpacity(0.1),
       child: Center(
         child: Icon(
           content.icon,
           size: 80,
-          color: content.category.color,
+          color: categoryColor,
         ),
       ),
     );
@@ -199,11 +228,5 @@ class FeaturedContentDetailScreen extends ConsumerWidget {
 
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-  }
-
-  void _loadContent(WidgetRef ref) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(featuredContentViewModelProvider.notifier).selectContentById(contentId);
-    });
   }
 } 

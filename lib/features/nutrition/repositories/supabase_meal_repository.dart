@@ -1,12 +1,16 @@
+// Dart imports:
 import 'dart:io';
 
+// Package imports:
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+// Project imports:
 import 'package:ray_club_app/core/errors/app_exception.dart';
 import 'package:ray_club_app/features/nutrition/models/meal.dart';
 import 'package:ray_club_app/features/nutrition/repositories/meal_repository_interface.dart';
 import 'package:ray_club_app/services/storage_service.dart';
 import 'package:ray_club_app/utils/log_utils.dart';
 import 'package:ray_club_app/utils/performance_monitor.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Implementação do repositório de refeições usando Supabase
 class SupabaseMealRepository implements MealRepository {

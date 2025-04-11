@@ -1,6 +1,11 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:ray_club_app/core/constants/app_colors.dart';
+
+// Package imports:
 import 'package:qr_flutter/qr_flutter.dart';
+
+// Project imports:
+import 'package:ray_club_app/core/constants/app_colors.dart';
 
 /// Widget to display QR code for a benefit
 class QRCodeWidget extends StatelessWidget {

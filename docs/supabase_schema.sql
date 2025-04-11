@@ -18,14 +18,24 @@ ALTER TABLE users REPLICA IDENTITY FULL;
 CREATE TABLE IF NOT EXISTS workouts (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   user_id UUID REFERENCES users(id) NOT NULL,
-  image_url TEXT,
+  title TEXT NOT NULL,
   description TEXT,
+  type TEXT NOT NULL,
+  duration_minutes INTEGER NOT NULL DEFAULT 30,
+  difficulty TEXT NOT NULL DEFAULT 'medium',
+  equipment TEXT[] DEFAULT '{}',
+  image_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  creator_id UUID REFERENCES users(id),
   is_public BOOLEAN DEFAULT true
 );
 
 -- Ativar realtime para tabela workouts
 ALTER TABLE workouts REPLICA IDENTITY FULL;
+
+-- Adicionar índice para pesquisa de treinos por duração
+CREATE INDEX IF NOT EXISTS workouts_duration_idx ON workouts(duration_minutes);
 
 -- Tabela de desafios
 CREATE TABLE IF NOT EXISTS challenges (

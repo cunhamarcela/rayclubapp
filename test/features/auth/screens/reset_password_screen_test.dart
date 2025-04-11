@@ -1,13 +1,18 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+// Project imports:
 import 'package:ray_club_app/core/router/app_router.dart';
 import 'package:ray_club_app/features/auth/models/auth_state.dart';
 import 'package:ray_club_app/features/auth/screens/reset_password_screen.dart';
 import 'package:ray_club_app/features/auth/services/auth_service.dart';
 import 'package:ray_club_app/features/auth/viewmodels/auth_view_model.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Mock para NaviagtorObserver para testar navegação
 class MockNavigatorObserver extends Mock implements NavigatorObserver {}

@@ -1,5 +1,8 @@
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+
+// Project imports:
 import 'package:ray_club_app/features/home/models/featured_content.dart';
 import 'package:ray_club_app/features/home/repositories/featured_content_repository.dart';
 

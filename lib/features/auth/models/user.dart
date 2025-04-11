@@ -1,3 +1,4 @@
+// Package imports:
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -17,6 +18,7 @@ class AppUser with _$AppUser {
     DateTime? updatedAt,
     required bool isEmailVerified,
     Map<String, dynamic>? metadata,
+    @Default(false) bool? isAdmin,
   }) = _AppUser;
 
   /// Creates an AppUser from a Supabase User object
@@ -31,6 +33,7 @@ class AppUser with _$AppUser {
           user.updatedAt != null ? DateTime.parse(user.updatedAt!) : null,
       isEmailVerified: user.emailConfirmedAt != null,
       metadata: user.userMetadata,
+      isAdmin: user.appMetadata?['is_admin'] as bool? ?? false,
     );
   }
 

@@ -38,11 +38,11 @@ Ao instalar e iniciar o app, o usuário vê uma tela de onboarding com um único
 - ✅ Tela de Nutrição com receitas e dicas nutricionais (100%)
 - ✅ Sistema de Desafios com convites, ranking e progresso (100%)
 - ✅ Perfil do usuário com edição de dados e estatísticas (100%)
-- ⏳ Benefícios: QR codes dinâmicos, cupons promocionais (90%)
+- ✅ Benefícios: QR codes dinâmicos, cupons promocionais, sistema de expiração (100%)
 
 **In-Scope vs Out-of-Scope:**
-- **Incluído e Implementado:** Fluxos completos de onboarding, login, home, treinos, registros, nutrição, desafios e perfil; Integração completa com Supabase (Auth, DB, Storage); Stack com Riverpod, Dio com tratamento de erros, auto_route.
-- **Incluído mas Pendente:** Finalização dos Benefícios, Analytics e métricas.
+- **Incluído e Implementado:** Fluxos completos de onboarding, login, home, treinos, registros, nutrição, desafios, perfil e benefícios; Integração completa com Supabase (Auth, DB, Storage); Stack com Riverpod, Dio com tratamento de erros, auto_route.
+- **Incluído mas Pendente:** Analytics e métricas.
 - **Fora do escopo:** Feed social/Comunidade, Pagamentos (Stripe, Apple Pay, In-App Purchase); Chat entre usuários em tempo real; CMS para conteúdo dinâmico; Versão Web/PWA.
 
 ---
@@ -220,4 +220,22 @@ A navegação geral é facilitada por uma barra inferior fixa, garantindo acesso
 1. Completar as funcionalidades restantes (Benefits)
 2. Implementar testes para todos os ViewModels
 3. Melhorar a experiência offline
-4. Otimizar performance e preparar para lançamento 
+4. Otimizar performance e preparar para lançamento
+
+**Próximos Passos:**
+1. Implementar testes para todos os ViewModels
+2. Melhorar a experiência offline com cache estratégico
+3. Otimizar performance e preparar para lançamento
+4. Implementar analytics para monitoramento de uso
+
+**Próximos Passos:**
+1. Implementar testes para todos os ViewModels
+2. Melhorar a experiência offline com cache estratégico
+3. Otimizar performance e preparar para lançamento
+4. Implementar analytics para monitoramento de uso
+
+**Próximos Passos:**
+1. Implementar testes para todos os ViewModels
+2. Melhorar a experiência offline com cache estratégico
+3. Otimizar performance e preparar para lançamento
+4. Implementar analytics para monitoramento de uso
